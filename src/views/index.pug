@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1 Todo List REST API
+
+  p Proyecto creado con Node.js, Express, Pug, Mongoose y MongoDB Atlas.
+
+  h2 Rutas principales de la API
+
+  ul
+    li GET /api/todos - Obtener todas las tareas
+    li GET /api/todos/:id - Obtener una tarea por ID
+    li POST /api/todos - Crear una tarea
+    li PUT /api/todos/:id - Actualizar una tarea
+    li DELETE /api/todos/:id - Eliminar una tarea
+
+  h2 Vista web
+
+  p
+    a(href="/todos") Ver lista de tareas con Pug

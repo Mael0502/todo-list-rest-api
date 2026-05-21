@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1 Lista de tareas
+
+  p
+    a(href="/") Volver al inicio
+
+  if todos.length === 0
+    p No hay tareas registradas todavía.
+  else
+    each todo in todos
+      .todo
+        h2= todo.title
+        p= todo.description || 'Sin descripción'
+        if todo.completed
+          p.completed Completada
+        else
+          p.pending Pendiente
+        small ID: #{todo._id}
