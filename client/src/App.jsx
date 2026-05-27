@@ -14,6 +14,7 @@ function App() {
   const [loadingTodos, setLoadingTodos] = useState(false)
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [theme, setTheme] = useState('light')
 
   const TODOS_API = '/api/todos'
   const FILES_API = '/api/files'
@@ -284,13 +285,38 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode')
+    } else {
+      document.body.classList.remove('dark-mode')
+    }
+  }, [theme])
+
   return (
     <main className="app">
       <header className="main-header">
         <h1>Todo List | Drive</h1>
-        <p>
-          Aplicación React conectada a una API REST con Express, MongoDB Atlas y GridFS.
-        </p>
+
+        <div className="theme-switch">
+          <button
+            type="button"
+            className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+            onClick={() => setTheme('light')}
+          >
+            <span className="theme-icon">☼</span>
+            <span>Claro</span>
+          </button>
+
+          <button
+            type="button"
+            className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+            onClick={() => setTheme('dark')}
+          >
+            <span className="theme-icon">◐</span>
+            <span>Oscuro</span>
+          </button>
+        </div>
       </header>
 
       <section className="modules-grid">
