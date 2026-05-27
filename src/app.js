@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const todoRoutes = require('./routes/todoRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/todos', todoRoutes);
 app.use('/todos', todoRoutes);
+app.use('/api/files', fileRoutes);
 
 // Servir React desde /app
 const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
