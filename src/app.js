@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const todoRoutes = require('./routes/todoRoutes');
 
 const app = express();
@@ -24,6 +25,9 @@ app.use('/todos', todoRoutes);
 
 // Servir React desde /app
 const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+
+console.log('Ruta del build de React:', clientDistPath);
+console.log('Existe index.html:', fs.existsSync(path.join(clientDistPath, 'index.html')));
 
 app.use('/app', express.static(clientDistPath));
 
