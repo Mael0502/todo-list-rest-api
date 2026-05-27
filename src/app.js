@@ -22,6 +22,11 @@ app.get('/', (req, res) => {
 
 app.use('/api/todos', todoRoutes);
 app.use('/todos', todoRoutes);
+
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+
+app.use('/app', express.static(clientDistPath));
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
