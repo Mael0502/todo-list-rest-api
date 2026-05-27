@@ -10,27 +10,61 @@ body {
 }
 
 .app {
-  max-width: 950px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px;
 }
 
-.card {
+.main-header {
+  max-width: 1300px;
+  margin: 0 auto 24px auto;
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  text-align: center;
 }
 
-h1,
-h2,
-h3 {
-  margin-top: 0;
+.main-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 34px;
 }
 
-.subtitle {
+.main-header p {
+  margin: 0;
   color: #6b7280;
+}
+
+.modules-grid {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.module-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+}
+
+.module-card h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.section-title {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}
+
+.section-title h3 {
+  margin: 0;
 }
 
 .form {
@@ -80,13 +114,21 @@ button.danger {
 }
 
 .todo-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  gap: 14px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 16px;
   background: #fafafa;
+}
+
+.todo-item h4 {
+  margin: 0 0 8px 0;
+}
+
+.todo-item p {
+  margin: 0 0 8px 0;
 }
 
 .completed-title {
@@ -117,16 +159,63 @@ button.danger {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 150px;
+}
+
+.files-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.files-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.files-table th,
+.files-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.files-table th {
+  background: #f3f4f6;
+  font-weight: bold;
+}
+
+.files-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.table-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 1000px) {
+  .modules-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
+  .app {
+    padding: 16px;
+  }
+
   .todo-item {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .actions {
     flex-direction: row;
     flex-wrap: wrap;
+  }
+
+  .table-actions {
+    min-width: 120px;
   }
 }
