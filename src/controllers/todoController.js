@@ -1,8 +1,12 @@
+const crypto = require('crypto');
 const Todo = require('../models/Todo');
 
 const getAllTodos = async (req, res) => {
   try {
-    const todos = await Todo.find().sort({ createdAt: -1 });
+    const todos = await Todo.find()
+      .select('-__v')
+      .sort({ createdAt: -1 })
+      .lean();
 
     if (req.originalUrl.startsWith('/todos')) {
       return res.render('todos', {
@@ -11,10 +15,52 @@ const getAllTodos = async (req, res) => {
       });
     }
 
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const lastUpdated = todos.length > 0
+      ? new Date(Math.max(...todos.map(todo => new Date(todo.updatedAt).getTime())))
+      : new Date();
+
+    const etagBase = JSON.stringify({
+      count: todos.length,
+      lastUpdated: lastUpdated.toISOString()
+    });
+
+    const etag = `"${crypto
+      .createHash('md5')
+      .update(etagBase)
+      .digest('hex')}"`;
+
+    res.set({
+      'Cache-Control': 'public, max-age=0, must-revalidate',
+      'ETag': etag,
+      'Last-Modified': lastUpdated.toUTCString()
+    });
+
+    if (req.headers['if-none-match'] === etag) {
+      return res.status(304).end();
+    }
+
+    const data = todos.map(todo => ({
+      ...todo,
+      url: `${baseUrl}/api/todos/${todo._id}`
+    }));
+
     res.status(200).json({
       success: true,
-      count: todos.length,
-      data: todos
+      meta: {
+        count: data.length,
+        lastUpdated: lastUpdated.toISOString(),
+        generatedAt: new Date().toISOString(),
+        links: {
+          self: `${baseUrl}${req.originalUrl}`
+        },
+        cache: {
+          etag,
+          lastModified: lastUpdated.toUTCString()
+        }
+      },
+      data
     });
   } catch (error) {
     res.status(500).json({
@@ -27,7 +73,9 @@ const getAllTodos = async (req, res) => {
 
 const getTodoById = async (req, res) => {
   try {
-    const todo = await Todo.findById(req.params.id);
+    const todo = await Todo.findById(req.params.id)
+      .select('-__v')
+      .lean();
 
     if (!todo) {
       return res.status(404).json({
@@ -36,9 +84,40 @@ const getTodoById = async (req, res) => {
       });
     }
 
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const lastModified = new Date(todo.updatedAt);
+    const etag = `"${crypto
+      .createHash('md5')
+      .update(`${todo._id}-${todo.updatedAt}`)
+      .digest('hex')}"`;
+
+    res.set({
+      'Cache-Control': 'public, max-age=0, must-revalidate',
+      'ETag': etag,
+      'Last-Modified': lastModified.toUTCString()
+    });
+
+    if (req.headers['if-none-match'] === etag) {
+      return res.status(304).end();
+    }
+
     res.status(200).json({
       success: true,
-      data: todo
+      meta: {
+        links: {
+          self: `${baseUrl}${req.originalUrl}`,
+          collection: `${baseUrl}/api/todos`
+        },
+        cache: {
+          etag,
+          lastModified: lastModified.toUTCString()
+        }
+      },
+      data: {
+        ...todo,
+        url: `${baseUrl}/api/todos/${todo._id}`
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -58,6 +137,8 @@ const createTodo = async (req, res) => {
       description,
       completed
     });
+
+    res.set('Cache-Control', 'no-store');
 
     res.status(201).json({
       success: true,
@@ -91,6 +172,8 @@ const updateTodo = async (req, res) => {
       });
     }
 
+    res.set('Cache-Control', 'no-store');
+
     res.status(200).json({
       success: true,
       message: 'Tarea actualizada correctamente',
@@ -115,6 +198,8 @@ const deleteTodo = async (req, res) => {
         message: 'Tarea no encontrada'
       });
     }
+
+    res.set('Cache-Control', 'no-store');
 
     res.status(200).json({
       success: true,

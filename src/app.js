@@ -4,6 +4,7 @@ const todoRoutes = require('./routes/todoRoutes');
 
 const app = express();
 
+app.disable('x-powered-by');
 app.set('json spaces', 2);
 
 app.use(express.json());
