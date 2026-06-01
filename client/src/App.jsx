@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import umssLogo from './assets/umss-logo.png'
 
@@ -28,7 +28,20 @@ function ThemeToggle({ theme, setTheme }) {
   )
 }
 
+const initialModal = {
+  visible: false,
+  type: 'message',
+  title: '',
+  message: '',
+  confirmText: 'Aceptar',
+  cancelText: 'Cancelar',
+  inputValue: '',
+  loading: false
+}
+
 function App() {
+  const modalActionRef = useRef(null)
+
   const [todos, setTodos] = useState([])
   const [files, setFiles] = useState([])
 
@@ -73,6 +86,8 @@ function App() {
     message: ''
   })
 
+  const [modal, setModal] = useState(initialModal)
+
   const [loadingTodos, setLoadingTodos] = useState(false)
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -91,6 +106,115 @@ function App() {
   const TODOS_API = '/api/todos'
   const FILES_API = '/api/files'
   const AUTH_API = '/api/auth'
+
+  const closeModal = () => {
+    modalActionRef.current = null
+    setModal(initialModal)
+  }
+
+  const showMessage = ({ title, message, confirmText = 'Aceptar' }) => {
+    modalActionRef.current = null
+
+    setModal({
+      visible: true,
+      type: 'message',
+      title,
+      message,
+      confirmText,
+      cancelText: '',
+      inputValue: '',
+      loading: false
+    })
+  }
+
+  const showConfirm = ({
+    title,
+    message,
+    confirmText = 'Aceptar',
+    cancelText = 'Cancelar',
+    onConfirm
+  }) => {
+    modalActionRef.current = onConfirm || null
+
+    setModal({
+      visible: true,
+      type: 'confirm',
+      title,
+      message,
+      confirmText,
+      cancelText,
+      inputValue: '',
+      loading: false
+    })
+  }
+
+  const showInput = ({
+    title,
+    message,
+    initialValue = '',
+    confirmText = 'Guardar',
+    cancelText = 'Cancelar',
+    onConfirm
+  }) => {
+    modalActionRef.current = onConfirm || null
+
+    setModal({
+      visible: true,
+      type: 'input',
+      title,
+      message,
+      confirmText,
+      cancelText,
+      inputValue: initialValue,
+      loading: false
+    })
+  }
+
+  const handleModalConfirm = async () => {
+    if (modal.type === 'message') {
+      closeModal()
+      return
+    }
+
+    const action = modalActionRef.current
+    const currentInputValue = modal.inputValue
+    const currentType = modal.type
+
+    if (!action) {
+      closeModal()
+      return
+    }
+
+    try {
+      setModal((previous) => ({
+        ...previous,
+        loading: true
+      }))
+
+      if (currentType === 'input') {
+        await action(currentInputValue)
+      } else {
+        await action()
+      }
+
+      closeModal()
+    } catch (error) {
+      console.error('Error en acción del modal:', error)
+
+      modalActionRef.current = null
+
+      setModal({
+        visible: true,
+        type: 'message',
+        title: 'Error',
+        message: 'No se pudo completar la acción solicitada.',
+        confirmText: 'Aceptar',
+        cancelText: '',
+        inputValue: '',
+        loading: false
+      })
+    }
+  }
 
   const resetUploadToast = () => {
     setUploadToast({
@@ -148,6 +272,18 @@ function App() {
     resetPagination()
   }
 
+  const requestLogout = () => {
+    showConfirm({
+      title: 'Cerrar sesión',
+      message: '¿Seguro que deseas cerrar tu sesión actual?',
+      confirmText: 'Cerrar sesión',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        logout()
+      }
+    })
+  }
+
   const getTodos = async (page = todoPage) => {
     if (!token) return
 
@@ -172,6 +308,11 @@ function App() {
       })
     } catch (error) {
       console.error('Error al obtener tareas:', error)
+
+      showMessage({
+        title: 'Error al cargar tareas',
+        message: 'No se pudieron obtener las tareas del usuario.'
+      })
     }
   }
 
@@ -199,6 +340,11 @@ function App() {
       })
     } catch (error) {
       console.error('Error al obtener archivos:', error)
+
+      showMessage({
+        title: 'Error al cargar archivos',
+        message: 'No se pudieron obtener los archivos del usuario.'
+      })
     }
   }
 
@@ -224,12 +370,18 @@ function App() {
     event.preventDefault()
 
     if (!authForm.email.trim() || !authForm.password.trim()) {
-      alert('Correo y contraseña son obligatorios')
+      showMessage({
+        title: 'Campos obligatorios',
+        message: 'Correo y contraseña son obligatorios.'
+      })
       return
     }
 
     if (authMode === 'register' && !authForm.name.trim()) {
-      alert('El nombre es obligatorio para registrarse')
+      showMessage({
+        title: 'Campo obligatorio',
+        message: 'El nombre es obligatorio para registrarse.'
+      })
       return
     }
 
@@ -264,7 +416,10 @@ function App() {
       const result = await response.json()
 
       if (!response.ok) {
-        alert(result.message || 'Error de autenticación')
+        showMessage({
+          title: authMode === 'login' ? 'Error de inicio de sesión' : 'Error de registro',
+          message: result.message || 'No se pudo completar la autenticación.'
+        })
         return
       }
 
@@ -282,7 +437,11 @@ function App() {
       })
     } catch (error) {
       console.error('Error de autenticación:', error)
-      alert('Error al conectar con el servidor')
+
+      showMessage({
+        title: 'Error de conexión',
+        message: 'No se pudo conectar con el servidor.'
+      })
     } finally {
       setAuthLoading(false)
     }
@@ -292,7 +451,10 @@ function App() {
     event.preventDefault()
 
     if (!form.title.trim()) {
-      alert('El título es obligatorio')
+      showMessage({
+        title: 'Campo obligatorio',
+        message: 'El título de la tarea es obligatorio.'
+      })
       return
     }
 
@@ -331,31 +493,34 @@ function App() {
       })
     } catch (error) {
       console.error('Error al guardar tarea:', error)
+
+      showMessage({
+        title: 'Error al guardar tarea',
+        message: 'No se pudo guardar la tarea.'
+      })
     }
   }
 
-  const toggleCompleted = async (todo) => {
-    const confirmAction = confirm(
-      todo.completed
+  const toggleCompleted = (todo) => {
+    showConfirm({
+      title: todo.completed ? 'Marcar como pendiente' : 'Completar tarea',
+      message: todo.completed
         ? `¿Deseas marcar "${todo.title}" como pendiente?`
-        : `¿Deseas marcar "${todo.title}" como completada?`
-    )
-
-    if (!confirmAction) return
-
-    try {
-      await fetch(`${TODOS_API}/${todo._id}`, {
-        method: 'PATCH',
-        headers: getJsonAuthHeaders(),
-        body: JSON.stringify({
-          completed: !todo.completed
+        : `¿Deseas marcar "${todo.title}" como completada?`,
+      confirmText: todo.completed ? 'Marcar pendiente' : 'Completar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        await fetch(`${TODOS_API}/${todo._id}`, {
+          method: 'PATCH',
+          headers: getJsonAuthHeaders(),
+          body: JSON.stringify({
+            completed: !todo.completed
+          })
         })
-      })
 
-      await getTodos(todoPage)
-    } catch (error) {
-      console.error('Error al actualizar estado:', error)
-    }
+        await getTodos(todoPage)
+      }
+    })
   }
 
   const startEdit = (todo) => {
@@ -366,45 +531,33 @@ function App() {
     })
   }
 
-  const deleteTodo = async (id, title) => {
-    const confirmDelete = confirm(`¿Seguro que deseas eliminar la tarea "${title}"?`)
+  const deleteTodo = (id, title) => {
+    showConfirm({
+      title: 'Eliminar tarea',
+      message: `¿Seguro que deseas eliminar la tarea "${title}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        await fetch(`${TODOS_API}/${id}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        })
 
-    if (!confirmDelete) return
+        const shouldGoBack = todos.length === 1 && todoPage > 1
+        const nextPage = shouldGoBack ? todoPage - 1 : todoPage
 
-    try {
-      await fetch(`${TODOS_API}/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-
-      const shouldGoBack = todos.length === 1 && todoPage > 1
-      const nextPage = shouldGoBack ? todoPage - 1 : todoPage
-
-      setTodoPage(nextPage)
-      await getTodos(nextPage)
-    } catch (error) {
-      console.error('Error al eliminar tarea:', error)
-    }
+        setTodoPage(nextPage)
+        await getTodos(nextPage)
+      }
+    })
   }
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0])
   }
 
-  const uploadFile = async (event) => {
-    event.preventDefault()
-
-    if (!selectedFile) {
-      alert('Debes seleccionar un archivo')
-      return
-    }
-
-    const confirmUpload = confirm(`¿Deseas subir el archivo "${selectedFile.name}"?`)
-
-    if (!confirmUpload) return
-
-    const formElement = event.currentTarget
-    const fileName = selectedFile.name
+  const uploadFileConfirmed = async (file, formElement) => {
+    const fileName = file.name
 
     setUploadToast({
       visible: true,
@@ -415,7 +568,7 @@ function App() {
     })
 
     const formData = new FormData()
-    formData.append('file', selectedFile)
+    formData.append('file', file)
 
     const xhr = new XMLHttpRequest()
 
@@ -488,84 +641,113 @@ function App() {
     xhr.send(formData)
   }
 
-  const downloadFile = async (file) => {
-    const confirmDownload = confirm(`¿Deseas descargar el archivo "${file.displayName}"?`)
+  const uploadFile = (event) => {
+    event.preventDefault()
 
-    if (!confirmDownload) return
-
-    try {
-      const response = await fetch(`${FILES_API}/${file._id}/download`, {
-        headers: getAuthHeaders()
+    if (!selectedFile) {
+      showMessage({
+        title: 'Archivo requerido',
+        message: 'Debes seleccionar un archivo antes de subirlo.'
       })
+      return
+    }
 
-      if (!response.ok) {
-        alert('No se pudo descargar el archivo')
-        return
+    const formElement = event.currentTarget
+    const file = selectedFile
+
+    showConfirm({
+      title: 'Subir archivo',
+      message: `¿Deseas subir el archivo "${file.name}"?`,
+      confirmText: 'Subir archivo',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        await uploadFileConfirmed(file, formElement)
       }
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-
-      const link = document.createElement('a')
-      link.href = url
-      link.download = file.displayName
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error al descargar archivo:', error)
-    }
+    })
   }
 
-  const editFile = async (file) => {
-    const newName = prompt('Nuevo nombre del archivo:', file.displayName)
-
-    if (!newName || !newName.trim()) return
-
-    const confirmEdit = confirm(
-      `¿Deseas cambiar el nombre de "${file.displayName}" a "${newName.trim()}"?`
-    )
-
-    if (!confirmEdit) return
-
-    try {
-      await fetch(`${FILES_API}/${file._id}`, {
-        method: 'PATCH',
-        headers: getJsonAuthHeaders(),
-        body: JSON.stringify({
-          displayName: newName.trim()
+  const downloadFile = (file) => {
+    showConfirm({
+      title: 'Descargar archivo',
+      message: `¿Deseas descargar el archivo "${file.displayName}"?`,
+      confirmText: 'Descargar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        const response = await fetch(`${FILES_API}/${file._id}/download`, {
+          headers: getAuthHeaders()
         })
-      })
 
-      await getFiles(filePage)
-    } catch (error) {
-      console.error('Error al editar archivo:', error)
-    }
+        if (!response.ok) {
+          showMessage({
+            title: 'Error de descarga',
+            message: 'No se pudo descargar el archivo.'
+          })
+          return
+        }
+
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.download = file.displayName
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+
+        window.URL.revokeObjectURL(url)
+      }
+    })
   }
 
-  const deleteFile = async (file) => {
-    const confirmDelete = confirm(
-      `¿Seguro que deseas eliminar el archivo "${file.displayName}"?\nEsta acción no se puede deshacer.`
-    )
+  const editFile = (file) => {
+    showInput({
+      title: 'Editar archivo',
+      message: 'Escribe el nuevo nombre visible del archivo.',
+      initialValue: file.displayName,
+      confirmText: 'Guardar cambios',
+      cancelText: 'Cancelar',
+      onConfirm: async (newName) => {
+        if (!newName || !newName.trim()) {
+          showMessage({
+            title: 'Nombre inválido',
+            message: 'El nombre del archivo no puede estar vacío.'
+          })
+          return
+        }
 
-    if (!confirmDelete) return
+        await fetch(`${FILES_API}/${file._id}`, {
+          method: 'PATCH',
+          headers: getJsonAuthHeaders(),
+          body: JSON.stringify({
+            displayName: newName.trim()
+          })
+        })
 
-    try {
-      await fetch(`${FILES_API}/${file._id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
+        await getFiles(filePage)
+      }
+    })
+  }
 
-      const shouldGoBack = files.length === 1 && filePage > 1
-      const nextPage = shouldGoBack ? filePage - 1 : filePage
+  const deleteFile = (file) => {
+    showConfirm({
+      title: 'Eliminar archivo',
+      message: `¿Seguro que deseas eliminar el archivo "${file.displayName}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        await fetch(`${FILES_API}/${file._id}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        })
 
-      setFilePage(nextPage)
-      await getFiles(nextPage)
-    } catch (error) {
-      console.error('Error al eliminar archivo:', error)
-    }
+        const shouldGoBack = files.length === 1 && filePage > 1
+        const nextPage = shouldGoBack ? filePage - 1 : filePage
+
+        setFilePage(nextPage)
+        await getFiles(nextPage)
+      }
+    })
   }
 
   const goToPreviousTodos = () => {
@@ -784,7 +966,7 @@ function App() {
             </div>
 
             <div className="dashboard-header-right">
-              <button type="button" className="logout-button logout-btn" onClick={logout}>
+              <button type="button" className="logout-button logout-btn" onClick={requestLogout}>
                 Cerrar sesión
               </button>
             </div>
@@ -854,15 +1036,16 @@ function App() {
                         </div>
 
                         <div className="actions">
-                          <button onClick={() => toggleCompleted(todo)}>
+                          <button type="button" onClick={() => toggleCompleted(todo)}>
                             {todo.completed ? 'Pendiente' : 'Completar'}
                           </button>
 
-                          <button onClick={() => startEdit(todo)}>
+                          <button type="button" onClick={() => startEdit(todo)}>
                             Editar
                           </button>
 
                           <button
+                            type="button"
                             className="danger"
                             onClick={() => deleteTodo(todo._id, todo.title)}
                           >
@@ -944,15 +1127,16 @@ function App() {
                             <td>{file.sizeFormatted}</td>
                             <td>
                               <div className="table-actions">
-                                <button onClick={() => downloadFile(file)}>
+                                <button type="button" onClick={() => downloadFile(file)}>
                                   Descargar
                                 </button>
 
-                                <button onClick={() => editFile(file)}>
+                                <button type="button" onClick={() => editFile(file)}>
                                   Editar
                                 </button>
 
                                 <button
+                                  type="button"
                                   className="danger"
                                   onClick={() => deleteFile(file)}
                                 >
@@ -992,6 +1176,54 @@ function App() {
             </section>
           </section>
         </>
+      )}
+
+      {modal.visible && (
+        <div className="modal-backdrop">
+          <section className="app-modal">
+            <h2>{modal.title}</h2>
+
+            <p>{modal.message}</p>
+
+            {modal.type === 'input' && (
+              <input
+                className="modal-input"
+                type="text"
+                value={modal.inputValue}
+                disabled={modal.loading}
+                onChange={(event) =>
+                  setModal((previous) => ({
+                    ...previous,
+                    inputValue: event.target.value
+                  }))
+                }
+                autoFocus
+              />
+            )}
+
+            <div className="modal-actions">
+              {modal.type !== 'message' && (
+                <button
+                  type="button"
+                  className="modal-cancel"
+                  disabled={modal.loading}
+                  onClick={closeModal}
+                >
+                  {modal.cancelText}
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="modal-confirm"
+                disabled={modal.loading}
+                onClick={handleModalConfirm}
+              >
+                {modal.loading ? 'Procesando...' : modal.confirmText}
+              </button>
+            </div>
+          </section>
+        </div>
       )}
 
       {uploadToast.visible && (
