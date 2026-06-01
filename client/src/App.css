@@ -11,8 +11,8 @@
   --border: #d1d5db;
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
-  --danger: #dc2626;
-  --danger-dark: #b91c1c;
+  --danger: #238636;
+  --danger-dark: #2ea043;
   --secondary: #6b7280;
   --shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
 }
@@ -26,8 +26,8 @@ body.dark-mode {
   --border: #334155;
   --primary: #3b82f6;
   --primary-dark: #2563eb;
-  --danger: #ef4444;
-  --danger-dark: #dc2626;
+  --danger: #238636;
+  --danger-dark: #2ea043;
   --secondary: #64748b;
   --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
@@ -274,8 +274,11 @@ button.secondary {
   background: var(--secondary);
 }
 
+/* Botones de eliminar ahora en verde */
 button.danger {
   background: var(--danger);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 button.danger:hover {
@@ -479,6 +482,19 @@ button:disabled {
   width: 100%;
   padding: 9px 10px;
   font-size: 13px;
+}
+
+/* Botones eliminar dentro de tareas y tabla */
+.actions button.danger,
+.table-actions button.danger {
+  background: var(--danger);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.actions button.danger:hover,
+.table-actions button.danger:hover {
+  background: var(--danger-dark);
 }
 
 /* PAGINACIÓN: separada de las tareas y archivos */
