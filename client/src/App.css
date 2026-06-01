@@ -48,11 +48,12 @@ body {
 .app {
   width: 100%;
   min-height: 100vh;
-  padding: 20px 28px 28px 28px;
+  padding: 20px 28px 42px 28px;
   background: var(--bg-main);
   color: var(--text-main);
 }
 
+/* Barra superior con logo */
 .global-topbar {
   width: 100%;
   max-width: 1450px;
@@ -79,12 +80,13 @@ body {
 }
 
 .umss-logo {
-  width: 135px;
+  width: 145px;
   height: auto;
   object-fit: contain;
   display: block;
 }
 
+/* Header principal */
 .main-header {
   width: 100%;
   max-width: 1450px;
@@ -119,7 +121,7 @@ body {
 }
 
 .session-text {
-  margin: 16px 0 0 0;
+  margin: 18px 0 0 0;
   color: var(--text-muted);
   font-size: 16px;
   font-weight: 600;
@@ -131,6 +133,7 @@ body {
   gap: 12px;
 }
 
+/* Botón modo claro/oscuro */
 .theme-switch {
   display: inline-flex;
   align-items: center;
@@ -169,6 +172,7 @@ body {
   line-height: 1;
 }
 
+/* Cerrar sesión celeste */
 .logout-button,
 .logout-btn {
   background: var(--primary);
@@ -180,6 +184,7 @@ body {
   background: var(--primary-dark);
 }
 
+/* Estructura Todo List | Drive */
 .modules-grid {
   width: 100%;
   max-width: 1450px;
@@ -223,6 +228,7 @@ body {
   text-align: center;
 }
 
+/* Formularios */
 .form,
 .auth-form {
   display: grid;
@@ -277,10 +283,11 @@ button.danger:hover {
 }
 
 button:disabled {
-  opacity: 0.65;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
+/* Login / Registro */
 .auth-card {
   width: 100%;
   max-width: 920px;
@@ -307,6 +314,7 @@ button:disabled {
   font-weight: 600;
 }
 
+/* Entrar y Registrarse mismo tamaño */
 .primary-btn,
 .secondary-btn {
   width: 180px;
@@ -341,6 +349,7 @@ button:disabled {
   font-weight: 600;
 }
 
+/* Tareas */
 .todo-list {
   display: grid;
   gap: 14px;
@@ -400,6 +409,7 @@ button:disabled {
   gap: 8px;
 }
 
+/* Tabla Drive */
 .files-table-wrapper {
   width: 100%;
   max-width: 100%;
@@ -469,6 +479,43 @@ button:disabled {
   width: 100%;
   padding: 9px 10px;
   font-size: 13px;
+}
+
+/* PAGINACIÓN: separada de las tareas y archivos */
+.pagination {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin-top: 70px !important;
+  padding-top: 30px !important;
+  padding-bottom: 20px !important;
+  border-top: 1px solid var(--border) !important;
+  clear: both !important;
+}
+
+.todo-list + .pagination,
+.files-table-wrapper + .pagination {
+  margin-top: 70px !important;
+}
+
+.pagination span {
+  color: var(--text-main);
+  font-weight: 700;
+  text-align: center;
+}
+
+.pagination button {
+  min-width: 115px;
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination button:disabled:hover {
+  background: var(--primary);
 }
 
 /* Ventana de subida tipo Drive */
@@ -574,6 +621,7 @@ button:disabled {
   transition: width 0.2s ease;
 }
 
+/* Responsive */
 @media (max-width: 1200px) {
   .modules-grid {
     grid-template-columns: 1fr;
@@ -605,7 +653,7 @@ button:disabled {
   }
 
   .umss-logo {
-    width: 115px;
+    width: 120px;
   }
 
   .main-header {
@@ -659,61 +707,9 @@ button:disabled {
     width: calc(100vw - 28px);
   }
 
- .pagination {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 120px minmax(160px, auto) 120px;
-  justify-content: center;
-  align-items: center;
-  column-gap: 34px;
-  row-gap: 12px;
-
-  margin-top: 34px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-}
-
-.pagination span {
-  display: block;
-  min-width: 160px;
-  color: var(--text-main);
-  font-weight: 800;
-  font-size: 15px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.pagination button {
-  width: 120px;
-  min-width: 120px;
-  padding: 11px 14px;
-  border-radius: 10px;
-}
-
-.pagination button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.pagination button:disabled:hover {
-  background: var(--primary);
-}
-
-@media (max-width: 700px) {
   .pagination {
-    grid-template-columns: 1fr;
-    row-gap: 10px;
-    margin-top: 28px;
-    padding-top: 20px;
+    flex-wrap: wrap !important;
+    margin-top: 50px !important;
+    padding-top: 24px !important;
   }
-
-  .pagination button {
-    width: 180px;
-    justify-self: center;
-  }
-
-  .pagination span {
-    order: -1;
-  }
-}
 }
