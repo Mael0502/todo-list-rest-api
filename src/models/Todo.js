@@ -4,7 +4,7 @@ const todoSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, 'El título de la tarea es obligatorio'],
+      required: [true, 'El título es obligatorio'],
       trim: true
     },
     description: {
@@ -15,6 +15,11 @@ const todoSchema = new mongoose.Schema(
     completed: {
       type: Boolean,
       default: false
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false
     }
   },
   {

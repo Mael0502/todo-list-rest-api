@@ -1,9 +1,30 @@
 const crypto = require('crypto');
 const Todo = require('../models/Todo');
 
+const getTodoFilter = (req) => {
+  if (req.user) {
+    return { user: req.user._id };
+  }
+
+  return {};
+};
+
+const formatTodoResponse = (todo, baseUrl) => ({
+  _id: todo._id,
+  title: todo.title,
+  description: todo.description,
+  completed: todo.completed,
+  user: todo.user,
+  createdAt: todo.createdAt,
+  updatedAt: todo.updatedAt,
+  url: `${baseUrl}/api/todos/${todo._id}`
+});
+
 const getAllTodos = async (req, res) => {
   try {
-    const todos = await Todo.find()
+    const filter = getTodoFilter(req);
+
+    const todos = await Todo.find(filter)
       .select('-__v')
       .sort({ createdAt: -1 })
       .lean();
@@ -18,10 +39,11 @@ const getAllTodos = async (req, res) => {
     const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     const lastUpdated = todos.length > 0
-      ? new Date(Math.max(...todos.map(todo => new Date(todo.updatedAt).getTime())))
+      ? new Date(Math.max(...todos.map((todo) => new Date(todo.updatedAt).getTime())))
       : new Date();
 
     const etagBase = JSON.stringify({
+      user: req.user?._id?.toString() || 'public',
       count: todos.length,
       lastUpdated: lastUpdated.toISOString()
     });
@@ -33,7 +55,7 @@ const getAllTodos = async (req, res) => {
 
     res.set({
       'Cache-Control': 'public, max-age=0, must-revalidate',
-      'ETag': etag,
+      ETag: etag,
       'Last-Modified': lastUpdated.toUTCString()
     });
 
@@ -41,10 +63,7 @@ const getAllTodos = async (req, res) => {
       return res.status(304).end();
     }
 
-    const data = todos.map(todo => ({
-      ...todo,
-      url: `${baseUrl}/api/todos/${todo._id}`
-    }));
+    const data = todos.map((todo) => formatTodoResponse(todo, baseUrl));
 
     res.status(200).json({
       success: true,
@@ -73,7 +92,12 @@ const getAllTodos = async (req, res) => {
 
 const getTodoById = async (req, res) => {
   try {
-    const todo = await Todo.findById(req.params.id)
+    const filter = {
+      _id: req.params.id,
+      ...getTodoFilter(req)
+    };
+
+    const todo = await Todo.findOne(filter)
       .select('-__v')
       .lean();
 
@@ -85,16 +109,16 @@ const getTodoById = async (req, res) => {
     }
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-
     const lastModified = new Date(todo.updatedAt);
+
     const etag = `"${crypto
       .createHash('md5')
-      .update(`${todo._id}-${todo.updatedAt}`)
+      .update(`${todo._id}-${todo.updatedAt}-${req.user?._id || 'public'}`)
       .digest('hex')}"`;
 
     res.set({
       'Cache-Control': 'public, max-age=0, must-revalidate',
-      'ETag': etag,
+      ETag: etag,
       'Last-Modified': lastModified.toUTCString()
     });
 
@@ -114,10 +138,7 @@ const getTodoById = async (req, res) => {
           lastModified: lastModified.toUTCString()
         }
       },
-      data: {
-        ...todo,
-        url: `${baseUrl}/api/todos/${todo._id}`
-      }
+      data: formatTodoResponse(todo, baseUrl)
     });
   } catch (error) {
     res.status(500).json({
@@ -135,17 +156,35 @@ const createTodo = async (req, res) => {
     const todo = await Todo.create({
       title,
       description,
-      completed
+      completed,
+      user: req.user?._id
     });
 
-    res.set('Cache-Control', 'no-store');
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const todoUrl = `${baseUrl}/api/todos/${todo._id}`;
+
+    res.set({
+      'Cache-Control': 'no-store',
+      Location: todoUrl
+    });
 
     res.status(201).json({
       success: true,
       message: 'Tarea creada correctamente',
-      data: todo
+      data: {
+        _id: todo._id,
+        title: todo.title,
+        description: todo.description,
+        completed: todo.completed,
+        user: todo.user,
+        createdAt: todo.createdAt,
+        updatedAt: todo.updatedAt,
+        url: todoUrl
+      }
     });
   } catch (error) {
+    res.set('Cache-Control', 'no-store');
+
     res.status(400).json({
       success: false,
       message: 'Error al crear la tarea',
@@ -156,14 +195,19 @@ const createTodo = async (req, res) => {
 
 const updateTodo = async (req, res) => {
   try {
-    const todo = await Todo.findByIdAndUpdate(
-      req.params.id,
+    const filter = {
+      _id: req.params.id,
+      ...getTodoFilter(req)
+    };
+
+    const todo = await Todo.findOneAndUpdate(
+      filter,
       req.body,
       {
         new: true,
         runValidators: true
       }
-    );
+    ).select('-__v');
 
     if (!todo) {
       return res.status(404).json({
@@ -172,14 +216,28 @@ const updateTodo = async (req, res) => {
       });
     }
 
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const todoUrl = `${baseUrl}/api/todos/${todo._id}`;
+
     res.set('Cache-Control', 'no-store');
 
     res.status(200).json({
       success: true,
       message: 'Tarea actualizada correctamente',
-      data: todo
+      data: {
+        _id: todo._id,
+        title: todo.title,
+        description: todo.description,
+        completed: todo.completed,
+        user: todo.user,
+        createdAt: todo.createdAt,
+        updatedAt: todo.updatedAt,
+        url: todoUrl
+      }
     });
   } catch (error) {
+    res.set('Cache-Control', 'no-store');
+
     res.status(400).json({
       success: false,
       message: 'Error al actualizar la tarea',
@@ -190,7 +248,12 @@ const updateTodo = async (req, res) => {
 
 const deleteTodo = async (req, res) => {
   try {
-    const todo = await Todo.findByIdAndDelete(req.params.id);
+    const filter = {
+      _id: req.params.id,
+      ...getTodoFilter(req)
+    };
+
+    const todo = await Todo.findOneAndDelete(filter);
 
     if (!todo) {
       return res.status(404).json({

@@ -4,6 +4,7 @@ const fs = require('fs');
 const todoRoutes = require('./routes/todoRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const authRoutes = require('./routes/authRoutes');
+const { protect } = require('./middlewares/authMiddleware');
 
 const app = express();
 
@@ -23,9 +24,11 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/todos', todoRoutes);
+// Rutas API protegidas con JWT
+app.use('/api/todos', protect, todoRoutes);
+app.use('/api/files', protect, fileRoutes);
+// Vista Pug antigua, se deja sin protección para no romper la vista
 app.use('/todos', todoRoutes);
-app.use('/api/files', fileRoutes);
 
 // Servir React desde /app
 const clientDistPath = path.join(__dirname, '..', 'client', 'dist');

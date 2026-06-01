@@ -23,6 +23,22 @@ const getBucket = () => {
   });
 };
 
+const getUserId = (req) => {
+  return req.user?._id?.toString();
+};
+
+const getFileFilter = (req, fileId = null) => {
+  const filter = {
+    'metadata.userId': getUserId(req)
+  };
+
+  if (fileId) {
+    filter._id = fileId;
+  }
+
+  return filter;
+};
+
 const formatFileSize = (bytes) => {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -47,6 +63,7 @@ const uploadFile = async (req, res) => {
     }
 
     const bucket = getBucket();
+    const userId = getUserId(req);
 
     const originalName = req.file.originalname;
     const mimeType = req.file.mimetype;
@@ -55,6 +72,7 @@ const uploadFile = async (req, res) => {
     const uploadStream = bucket.openUploadStream(originalName, {
       contentType: mimeType,
       metadata: {
+        userId,
         originalName,
         displayName: originalName,
         mimeType,
@@ -70,7 +88,7 @@ const uploadFile = async (req, res) => {
 
       res.set({
         'Cache-Control': 'no-store',
-        'Location': `${baseUrl}/api/files/${fileId}/download`
+        Location: `${baseUrl}/api/files/${fileId}/download`
       });
 
       res.status(201).json({
@@ -110,7 +128,7 @@ const getAllFiles = async (req, res) => {
     const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     const files = await bucket
-      .find({})
+      .find(getFileFilter(req))
       .sort({ uploadDate: -1 })
       .toArray();
 
@@ -157,7 +175,7 @@ const downloadFile = async (req, res) => {
     const bucket = getBucket();
     const fileId = new ObjectId(id);
 
-    const files = await bucket.find({ _id: fileId }).toArray();
+    const files = await bucket.find(getFileFilter(req, fileId)).toArray();
 
     if (files.length === 0) {
       return res.status(404).json({
@@ -219,7 +237,7 @@ const updateFile = async (req, res) => {
     const fileId = new ObjectId(id);
 
     const result = await db.collection('driveFiles.files').findOneAndUpdate(
-      { _id: fileId },
+      getFileFilter(req, fileId),
       {
         $set: {
           'metadata.displayName': displayName.trim()
@@ -275,7 +293,7 @@ const deleteFile = async (req, res) => {
     const bucket = getBucket();
     const fileId = new ObjectId(id);
 
-    const files = await bucket.find({ _id: fileId }).toArray();
+    const files = await bucket.find(getFileFilter(req, fileId)).toArray();
 
     if (files.length === 0) {
       return res.status(404).json({
