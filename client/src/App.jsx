@@ -10,18 +10,52 @@ function App() {
     description: ''
   })
 
+  const [authForm, setAuthForm] = useState({
+    name: '',
+    email: '',
+    password: ''
+  })
+
   const [selectedFile, setSelectedFile] = useState(null)
   const [loadingTodos, setLoadingTodos] = useState(false)
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [theme, setTheme] = useState('light')
 
+  const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user')
+    return storedUser ? JSON.parse(storedUser) : null
+  })
+  const [authMode, setAuthMode] = useState('login')
+  const [authLoading, setAuthLoading] = useState(false)
+
   const TODOS_API = '/api/todos'
   const FILES_API = '/api/files'
+  const AUTH_API = '/api/auth'
+
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${token}`
+  })
+
+  const getJsonAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`
+  })
 
   const getTodos = async () => {
+    if (!token) return
+
     try {
-      const response = await fetch(TODOS_API)
+      const response = await fetch(TODOS_API, {
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        logout()
+        return
+      }
+
       const result = await response.json()
       setTodos(result.data || [])
     } catch (error) {
@@ -30,8 +64,18 @@ function App() {
   }
 
   const getFiles = async () => {
+    if (!token) return
+
     try {
-      const response = await fetch(FILES_API)
+      const response = await fetch(FILES_API, {
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        logout()
+        return
+      }
+
       const result = await response.json()
       setFiles(result.data || [])
     } catch (error) {
@@ -48,6 +92,98 @@ function App() {
     })
   }
 
+  const handleAuthChange = (event) => {
+    const { name, value } = event.target
+
+    setAuthForm({
+      ...authForm,
+      [name]: value
+    })
+  }
+
+  const handleAuthSubmit = async (event) => {
+    event.preventDefault()
+
+    if (!authForm.email.trim() || !authForm.password.trim()) {
+      alert('Correo y contraseña son obligatorios')
+      return
+    }
+
+    if (authMode === 'register' && !authForm.name.trim()) {
+      alert('El nombre es obligatorio para registrarse')
+      return
+    }
+
+    try {
+      setAuthLoading(true)
+
+      const endpoint =
+        authMode === 'login'
+          ? `${AUTH_API}/login`
+          : `${AUTH_API}/register`
+
+      const body =
+        authMode === 'login'
+          ? {
+              email: authForm.email,
+              password: authForm.password
+            }
+          : {
+              name: authForm.name,
+              email: authForm.email,
+              password: authForm.password
+            }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        alert(result.message || 'Error de autenticación')
+        return
+      }
+
+      localStorage.setItem('token', result.token)
+      localStorage.setItem('user', JSON.stringify(result.data))
+
+      setToken(result.token)
+      setUser(result.data)
+
+      setAuthForm({
+        name: '',
+        email: '',
+        password: ''
+      })
+    } catch (error) {
+      console.error('Error de autenticación:', error)
+      alert('Error al conectar con el servidor')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+
+    setToken(null)
+    setUser(null)
+    setTodos([])
+    setFiles([])
+    setEditingId(null)
+    setForm({
+      title: '',
+      description: ''
+    })
+    setSelectedFile(null)
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -60,9 +196,7 @@ function App() {
       if (editingId) {
         await fetch(`${TODOS_API}/${editingId}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: getJsonAuthHeaders(),
           body: JSON.stringify({
             title: form.title,
             description: form.description,
@@ -74,9 +208,7 @@ function App() {
       } else {
         await fetch(TODOS_API, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: getJsonAuthHeaders(),
           body: JSON.stringify({
             title: form.title,
             description: form.description,
@@ -108,9 +240,7 @@ function App() {
     try {
       await fetch(`${TODOS_API}/${todo._id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getJsonAuthHeaders(),
         body: JSON.stringify({
           completed: !todo.completed
         })
@@ -137,7 +267,8 @@ function App() {
 
     try {
       await fetch(`${TODOS_API}/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       })
 
       await getTodos()
@@ -168,6 +299,7 @@ function App() {
 
       await fetch(`${FILES_API}/upload`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         body: formData
       })
 
@@ -180,12 +312,35 @@ function App() {
     }
   }
 
-  const downloadFile = (file) => {
+  const downloadFile = async (file) => {
     const confirmDownload = confirm(`¿Deseas descargar el archivo "${file.displayName}"?`)
 
     if (!confirmDownload) return
 
-    window.open(file.downloadUrl, '_blank')
+    try {
+      const response = await fetch(`${FILES_API}/${file._id}/download`, {
+        headers: getAuthHeaders()
+      })
+
+      if (!response.ok) {
+        alert('No se pudo descargar el archivo')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = file.displayName
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error al descargar archivo:', error)
+    }
   }
 
   const editFile = async (file) => {
@@ -202,9 +357,7 @@ function App() {
     try {
       await fetch(`${FILES_API}/${file._id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getJsonAuthHeaders(),
         body: JSON.stringify({
           displayName: newName.trim()
         })
@@ -225,7 +378,8 @@ function App() {
 
     try {
       await fetch(`${FILES_API}/${file._id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       })
 
       await getFiles()
@@ -247,6 +401,8 @@ function App() {
   }
 
   useEffect(() => {
+    if (!token) return
+
     let ignore = false
 
     const loadInitialData = async () => {
@@ -255,9 +411,22 @@ function App() {
         setLoadingFiles(true)
 
         const [todosResponse, filesResponse] = await Promise.all([
-          fetch(TODOS_API),
-          fetch(FILES_API)
+          fetch(TODOS_API, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }),
+          fetch(FILES_API, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
         ])
+
+        if (todosResponse.status === 401 || filesResponse.status === 401) {
+          logout()
+          return
+        }
 
         const todosResult = await todosResponse.json()
         const filesResult = await filesResponse.json()
@@ -283,7 +452,7 @@ function App() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [token])
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -293,28 +462,106 @@ function App() {
     }
   }, [theme])
 
+  if (!token || !user) {
+    return (
+      <main className="app">
+        <section className="auth-card">
+          <h1>{authMode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
+
+          <p className="auth-subtitle">
+            Accede para usar Todo List y Drive.
+          </p>
+
+          <form onSubmit={handleAuthSubmit} className="form">
+            {authMode === 'register' && (
+              <input
+                type="text"
+                name="name"
+                placeholder="Nombre"
+                value={authForm.name}
+                onChange={handleAuthChange}
+              />
+            )}
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Correo electrónico"
+              value={authForm.email}
+              onChange={handleAuthChange}
+            />
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Contraseña"
+              value={authForm.password}
+              onChange={handleAuthChange}
+            />
+
+            <button type="submit" disabled={authLoading}>
+              {authLoading
+                ? 'Procesando...'
+                : authMode === 'login'
+                  ? 'Entrar'
+                  : 'Registrarse'}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            className="auth-switch-button"
+            onClick={() => {
+              setAuthMode(authMode === 'login' ? 'register' : 'login')
+              setAuthForm({
+                name: '',
+                email: '',
+                password: ''
+              })
+            }}
+          >
+            {authMode === 'login'
+              ? 'No tengo cuenta, registrarme'
+              : 'Ya tengo cuenta, iniciar sesión'}
+          </button>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="app">
       <header className="main-header">
-        <h1>Todo List | Drive</h1>
+        <div>
+          <h1>Todo List | Drive</h1>
+          <p className="user-session">
+            Sesión activa: {user.name} — {user.email}
+          </p>
+        </div>
 
-        <div className="theme-switch">
-          <button
-            type="button"
-            className={`theme-option ${theme === 'light' ? 'active' : ''}`}
-            onClick={() => setTheme('light')}
-          >
-            <span className="theme-icon">☼</span>
-            <span>Claro</span>
-          </button>
+        <div className="header-actions">
+          <div className="theme-switch">
+            <button
+              type="button"
+              className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+              onClick={() => setTheme('light')}
+            >
+              <span className="theme-icon">☼</span>
+              <span>Claro</span>
+            </button>
 
-          <button
-            type="button"
-            className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
-            onClick={() => setTheme('dark')}
-          >
-            <span className="theme-icon">◐</span>
-            <span>Oscuro</span>
+            <button
+              type="button"
+              className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+              onClick={() => setTheme('dark')}
+            >
+              <span className="theme-icon">◐</span>
+              <span>Oscuro</span>
+            </button>
+          </div>
+
+          <button type="button" className="logout-button" onClick={logout}>
+            Cerrar sesión
           </button>
         </div>
       </header>
@@ -364,7 +611,7 @@ function App() {
           {loadingTodos ? (
             <p>Cargando tareas...</p>
           ) : todos.length === 0 ? (
-            <p>No hay tareas registradas.</p>
+            <p>No hay tareas registradas para este usuario.</p>
           ) : (
             <div className="todo-list">
               {todos.map((todo) => (
@@ -425,7 +672,7 @@ function App() {
           {loadingFiles ? (
             <p>Cargando archivos...</p>
           ) : files.length === 0 ? (
-            <p>No hay archivos subidos.</p>
+            <p>No hay archivos subidos para este usuario.</p>
           ) : (
             <div className="files-table-wrapper">
               <table className="files-table">
