@@ -44,6 +44,15 @@ function App() {
   })
 
   const [selectedFile, setSelectedFile] = useState(null)
+
+  const [uploadToast, setUploadToast] = useState({
+    visible: false,
+    status: 'idle',
+    fileName: '',
+    progress: 0,
+    message: ''
+  })
+
   const [loadingTodos, setLoadingTodos] = useState(false)
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -62,6 +71,16 @@ function App() {
   const TODOS_API = '/api/todos'
   const FILES_API = '/api/files'
   const AUTH_API = '/api/auth'
+
+  const resetUploadToast = () => {
+    setUploadToast({
+      visible: false,
+      status: 'idle',
+      fileName: '',
+      progress: 0,
+      message: ''
+    })
+  }
 
   const getAuthHeaders = () => ({
     Authorization: `Bearer ${token}`
@@ -86,6 +105,7 @@ function App() {
       description: ''
     })
     setSelectedFile(null)
+    resetUploadToast()
   }
 
   const getTodos = async () => {
@@ -322,23 +342,88 @@ function App() {
 
     if (!confirmUpload) return
 
-    try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
+    const formElement = event.currentTarget
+    const fileName = selectedFile.name
 
-      await fetch(`${FILES_API}/upload`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: formData
-      })
+    setUploadToast({
+      visible: true,
+      status: 'uploading',
+      fileName,
+      progress: 0,
+      message: 'Subiendo archivo...'
+    })
 
-      setSelectedFile(null)
-      event.target.reset()
+    const formData = new FormData()
+    formData.append('file', selectedFile)
 
-      await getFiles()
-    } catch (error) {
-      console.error('Error al subir archivo:', error)
+    const xhr = new XMLHttpRequest()
+
+    xhr.open('POST', `${FILES_API}/upload`)
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+
+    xhr.upload.onprogress = (progressEvent) => {
+      if (progressEvent.lengthComputable) {
+        const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+
+        setUploadToast((previous) => ({
+          ...previous,
+          progress,
+          message: progress >= 100 ? 'Procesando archivo...' : 'Subiendo archivo...'
+        }))
+      }
     }
+
+    xhr.onload = async () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        setUploadToast({
+          visible: true,
+          status: 'success',
+          fileName,
+          progress: 100,
+          message: 'Archivo subido correctamente'
+        })
+
+        setSelectedFile(null)
+        formElement.reset()
+
+        await getFiles()
+
+        setTimeout(() => {
+          resetUploadToast()
+        }, 3500)
+
+        return
+      }
+
+      let errorMessage = 'Error al subir el archivo'
+
+      try {
+        const response = JSON.parse(xhr.responseText)
+        errorMessage = response.message || errorMessage
+      } catch {
+        errorMessage = 'Error al subir el archivo'
+      }
+
+      setUploadToast({
+        visible: true,
+        status: 'error',
+        fileName,
+        progress: 0,
+        message: errorMessage
+      })
+    }
+
+    xhr.onerror = () => {
+      setUploadToast({
+        visible: true,
+        status: 'error',
+        fileName,
+        progress: 0,
+        message: 'Error de conexión al subir el archivo'
+      })
+    }
+
+    xhr.send(formData)
   }
 
   const downloadFile = async (file) => {
@@ -744,6 +829,52 @@ function App() {
             </section>
           </section>
         </>
+      )}
+
+      {uploadToast.visible && (
+        <div className={`upload-toast ${uploadToast.status}`}>
+          <div className="upload-toast-header">
+            <strong>
+              {uploadToast.status === 'success'
+                ? '1 subida completada'
+                : uploadToast.status === 'error'
+                  ? 'Error en la subida'
+                  : 'Subiendo archivo'}
+            </strong>
+
+            <button
+              type="button"
+              className="upload-toast-close"
+              onClick={resetUploadToast}
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="upload-toast-body">
+            <div className="upload-file-icon">
+              {uploadToast.status === 'success'
+                ? '✓'
+                : uploadToast.status === 'error'
+                  ? '!'
+                  : '↑'}
+            </div>
+
+            <div className="upload-file-info">
+              <p className="upload-file-name">{uploadToast.fileName}</p>
+              <p className="upload-file-message">{uploadToast.message}</p>
+
+              {uploadToast.status === 'uploading' && (
+                <div className="upload-progress">
+                  <div
+                    className="upload-progress-bar"
+                    style={{ width: `${uploadToast.progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )
