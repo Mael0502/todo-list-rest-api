@@ -24,9 +24,17 @@ const getAllTodos = async (req, res) => {
   try {
     const filter = getTodoFilter(req);
 
-    const todos = await Todo.find(filter)
+     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+     const limit = Math.max(parseInt(req.query.limit, 10) || 5, 1);
+     const skip = (page - 1) * limit;
+
+     const total = await Todo.countDocuments(filter);
+
+     const todos = await Todo.find(filter)
       .select('-__v')
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
     if (req.originalUrl.startsWith('/todos')) {
@@ -65,22 +73,28 @@ const getAllTodos = async (req, res) => {
 
     const data = todos.map((todo) => formatTodoResponse(todo, baseUrl));
 
-    res.status(200).json({
-      success: true,
-      meta: {
-        count: data.length,
-        lastUpdated: lastUpdated.toISOString(),
-        generatedAt: new Date().toISOString(),
-        links: {
-          self: `${baseUrl}${req.originalUrl}`
-        },
-        cache: {
-          etag,
-          lastModified: lastUpdated.toUTCString()
-        }
-      },
-      data
-    });
+   res.status(200).json({
+  success: true,
+  meta: {
+    count: data.length,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+    hasNextPage: page < Math.ceil(total / limit),
+    hasPrevPage: page > 1,
+    lastUpdated: lastUpdated.toISOString(),
+    generatedAt: new Date().toISOString(),
+    links: {
+      self: `${baseUrl}${req.originalUrl}`
+    },
+    cache: {
+      etag,
+      lastModified: lastUpdated.toUTCString()
+    }
+  },
+  data
+});
   } catch (error) {
     res.status(500).json({
       success: false,

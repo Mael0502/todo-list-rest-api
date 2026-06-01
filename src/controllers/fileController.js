@@ -127,10 +127,22 @@ const getAllFiles = async (req, res) => {
     const bucket = getBucket();
     const baseUrl = `${req.protocol}://${req.get('host')}`;
 
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 5, 1);
+    const skip = (page - 1) * limit;
+
+    const filter = getFileFilter(req);
+
+    const total = await mongoose.connection.db
+    .collection('driveFiles.files')
+    .countDocuments(filter);
+
     const files = await bucket
-      .find(getFileFilter(req))
-      .sort({ uploadDate: -1 })
-      .toArray();
+    .find(filter)
+    .sort({ uploadDate: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
 
     const data = files.map((file) => ({
       _id: file._id.toString(),
@@ -148,10 +160,19 @@ const getAllFiles = async (req, res) => {
     });
 
     res.status(200).json({
-      success: true,
-      count: data.length,
-      data
+    success: true,
+    count: data.length,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPrevPage: page > 1
+      },
+    data
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
