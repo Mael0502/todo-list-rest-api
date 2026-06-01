@@ -48,7 +48,41 @@ body {
 .app {
   width: 100%;
   min-height: 100vh;
-  padding: 28px;
+  padding: 20px 28px 28px 28px;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.global-topbar {
+  width: 100%;
+  max-width: 1450px;
+  margin: 0 auto 22px auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.global-topbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.global-topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.umss-logo {
+  width: 135px;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .main-header {
@@ -63,14 +97,38 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 18px;
+  border: 1px solid var(--border);
 }
 
-.main-header h1 {
+.dashboard-header {
+  align-items: flex-start;
+}
+
+.dashboard-header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-title {
   margin: 0;
   font-size: 38px;
   color: var(--text-main);
   font-weight: 800;
   letter-spacing: 0.3px;
+  line-height: 1.1;
+}
+
+.session-text {
+  margin: 16px 0 0 0;
+  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dashboard-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .theme-switch {
@@ -109,6 +167,18 @@ body {
 .theme-icon {
   font-size: 16px;
   line-height: 1;
+}
+
+/* Cerrar sesión ahora usa el mismo celeste que los botones principales */
+.logout-button,
+.logout-btn {
+  background: var(--primary);
+  white-space: nowrap;
+}
+
+.logout-button:hover,
+.logout-btn:hover {
+  background: var(--primary-dark);
 }
 
 .modules-grid {
@@ -154,9 +224,10 @@ body {
   text-align: center;
 }
 
-.form {
+.form,
+.auth-form {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 input,
@@ -204,6 +275,72 @@ button.danger {
 
 button.danger:hover {
   background: var(--danger-dark);
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 920px;
+  margin: 60px auto 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 34px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.auth-title {
+  margin: 0 0 12px 0;
+  color: var(--text-main);
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.auth-subtitle {
+  margin: 0 0 28px 0;
+  color: var(--text-muted);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* Entrar y Registrarse ahora tienen el mismo tamaño */
+.primary-btn,
+.secondary-btn {
+  width: 180px;
+  justify-self: center;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-weight: bold;
+}
+
+.primary-btn:hover,
+.secondary-btn:hover {
+  background: var(--primary-dark);
+}
+
+.primary-btn {
+  margin-top: 8px;
+}
+
+.register-helper {
+  margin-top: 30px;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.register-helper-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .todo-list {
@@ -344,6 +481,11 @@ button.danger:hover {
   .main-header {
     flex-direction: column;
     text-align: center;
+    align-items: center;
+  }
+
+  .dashboard-header-right {
+    justify-content: center;
   }
 
   .files-table {
@@ -353,21 +495,48 @@ button.danger:hover {
 
 @media (max-width: 700px) {
   .app {
+    padding: 14px;
+  }
+
+  .global-topbar {
+    flex-direction: column;
     padding: 16px;
+  }
+
+  .umss-logo {
+    width: 115px;
   }
 
   .main-header {
     padding: 18px;
   }
 
-  .main-header h1 {
+  .dashboard-title {
     font-size: 28px;
+  }
+
+  .session-text {
+    font-size: 14px;
   }
 
   .theme-switch {
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .auth-card {
+    margin-top: 30px;
+    padding: 24px;
+  }
+
+  .auth-title {
+    font-size: 32px;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    width: 180px;
   }
 
   .module-card {

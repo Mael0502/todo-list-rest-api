@@ -1,5 +1,32 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import umssLogo from './assets/umss-logo.png'
+
+function ThemeToggle({ theme, setTheme }) {
+  const isDarkMode = theme === 'dark'
+
+  return (
+    <div className="theme-switch">
+      <button
+        type="button"
+        className={`theme-option ${!isDarkMode ? 'active' : ''}`}
+        onClick={() => setTheme('light')}
+      >
+        <span className="theme-icon">☼</span>
+        <span>Claro</span>
+      </button>
+
+      <button
+        type="button"
+        className={`theme-option ${isDarkMode ? 'active' : ''}`}
+        onClick={() => setTheme('dark')}
+      >
+        <span className="theme-icon">◐</span>
+        <span>Oscuro</span>
+      </button>
+    </div>
+  )
+}
 
 function App() {
   const [todos, setTodos] = useState([])
@@ -20,13 +47,15 @@ function App() {
   const [loadingTodos, setLoadingTodos] = useState(false)
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [editingId, setEditingId] = useState(null)
-  const [theme, setTheme] = useState('light')
+  const [theme, setTheme] = useState('dark')
 
   const [token, setToken] = useState(() => localStorage.getItem('token'))
+
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user')
     return storedUser ? JSON.parse(storedUser) : null
   })
+
   const [authMode, setAuthMode] = useState('login')
   const [authLoading, setAuthLoading] = useState(false)
 
@@ -42,6 +71,22 @@ function App() {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`
   })
+
+  const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+
+    setToken(null)
+    setUser(null)
+    setTodos([])
+    setFiles([])
+    setEditingId(null)
+    setForm({
+      title: '',
+      description: ''
+    })
+    setSelectedFile(null)
+  }
 
   const getTodos = async () => {
     if (!token) return
@@ -166,22 +211,6 @@ function App() {
     } finally {
       setAuthLoading(false)
     }
-  }
-
-  const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-
-    setToken(null)
-    setUser(null)
-    setTodos([])
-    setFiles([])
-    setEditingId(null)
-    setForm({
-      title: '',
-      description: ''
-    })
-    setSelectedFile(null)
   }
 
   const handleSubmit = async (event) => {
@@ -462,17 +491,29 @@ function App() {
     }
   }, [theme])
 
-  if (!token || !user) {
-    return (
-      <main className="app">
+  return (
+    <main className={`app page ${theme}`}>
+      <header className="global-topbar">
+        <div className="global-topbar-left">
+          <img src={umssLogo} alt="Logo UMSS" className="umss-logo" />
+        </div>
+
+        <div className="global-topbar-right">
+          <ThemeToggle theme={theme} setTheme={setTheme} />
+        </div>
+      </header>
+
+      {!token || !user ? (
         <section className="auth-card">
-          <h1>{authMode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
+          <h1 className="auth-title">
+            {authMode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          </h1>
 
           <p className="auth-subtitle">
             Accede para usar Todo List y Drive.
           </p>
 
-          <form onSubmit={handleAuthSubmit} className="form">
+          <form onSubmit={handleAuthSubmit} className="auth-form">
             {authMode === 'register' && (
               <input
                 type="text"
@@ -499,226 +540,211 @@ function App() {
               onChange={handleAuthChange}
             />
 
-            <button type="submit" disabled={authLoading}>
+            <button type="submit" className="primary-btn" disabled={authLoading}>
               {authLoading
                 ? 'Procesando...'
                 : authMode === 'login'
                   ? 'Entrar'
-                  : 'Registrarse'}
+                  : 'Crear cuenta'}
             </button>
           </form>
 
-          <button
-            type="button"
-            className="auth-switch-button"
-            onClick={() => {
-              setAuthMode(authMode === 'login' ? 'register' : 'login')
-              setAuthForm({
-                name: '',
-                email: '',
-                password: ''
-              })
-            }}
-          >
-            {authMode === 'login'
-              ? 'No tengo cuenta, registrarme'
-              : 'Ya tengo cuenta, iniciar sesión'}
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  return (
-    <main className="app">
-      <header className="main-header">
-        <div>
-          <h1>Todo List | Drive</h1>
-          <p className="user-session">
-            Sesión activa: {user.name} — {user.email}
-          </p>
-        </div>
-
-        <div className="header-actions">
-          <div className="theme-switch">
-            <button
-              type="button"
-              className={`theme-option ${theme === 'light' ? 'active' : ''}`}
-              onClick={() => setTheme('light')}
-            >
-              <span className="theme-icon">☼</span>
-              <span>Claro</span>
-            </button>
+          <div className="register-helper">
+            <p className="register-helper-text">
+              {authMode === 'login'
+                ? '¿No tienes cuenta o estás usando por primera vez mi app?'
+                : '¿Ya tienes una cuenta registrada?'}
+            </p>
 
             <button
               type="button"
-              className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
-              onClick={() => setTheme('dark')}
+              className="secondary-btn"
+              onClick={() => {
+                setAuthMode(authMode === 'login' ? 'register' : 'login')
+                setAuthForm({
+                  name: '',
+                  email: '',
+                  password: ''
+                })
+              }}
             >
-              <span className="theme-icon">◐</span>
-              <span>Oscuro</span>
+              {authMode === 'login' ? 'Registrarse' : 'Iniciar sesión'}
             </button>
           </div>
+        </section>
+      ) : (
+        <>
+          <header className="main-header dashboard-header">
+            <div className="dashboard-header-left">
+              <h1 className="dashboard-title">Todo List | Drive</h1>
 
-          <button type="button" className="logout-button" onClick={logout}>
-            Cerrar sesión
-          </button>
-        </div>
-      </header>
+              <p className="session-text">
+                Sesión activa: {user?.name || 'Usuario'}
+              </p>
+            </div>
 
-      <section className="modules-grid">
-        <section className="module-card">
-          <h2>Todo List</h2>
-
-          <form onSubmit={handleSubmit} className="form">
-            <input
-              type="text"
-              name="title"
-              placeholder="Título de la tarea"
-              value={form.title}
-              onChange={handleChange}
-            />
-
-            <textarea
-              name="description"
-              placeholder="Descripción"
-              value={form.description}
-              onChange={handleChange}
-            />
-
-            <button type="submit">
-              {editingId ? 'Actualizar tarea' : 'Crear tarea'}
-            </button>
-
-            {editingId && (
-              <button
-                type="button"
-                className="secondary"
-                onClick={() => {
-                  setEditingId(null)
-                  setForm({ title: '', description: '' })
-                }}
-              >
-                Cancelar edición
+            <div className="dashboard-header-right">
+              <button type="button" className="logout-button logout-btn" onClick={logout}>
+                Cerrar sesión
               </button>
-            )}
-          </form>
-
-          <div className="section-title">
-            <h3>Lista de tareas</h3>
-          </div>
-
-          {loadingTodos ? (
-            <p>Cargando tareas...</p>
-          ) : todos.length === 0 ? (
-            <p>No hay tareas registradas para este usuario.</p>
-          ) : (
-            <div className="todo-list">
-              {todos.map((todo) => (
-                <article key={todo._id} className="todo-item">
-                  <div>
-                    <h4 className={todo.completed ? 'completed-title' : ''}>
-                      {todo.title}
-                    </h4>
-
-                    <p>{todo.description || 'Sin descripción'}</p>
-
-                    <span className={todo.completed ? 'badge done' : 'badge pending'}>
-                      {todo.completed ? 'Completada' : 'Pendiente'}
-                    </span>
-                  </div>
-
-                  <div className="actions">
-                    <button onClick={() => toggleCompleted(todo)}>
-                      {todo.completed ? 'Pendiente' : 'Completar'}
-                    </button>
-
-                    <button onClick={() => startEdit(todo)}>
-                      Editar
-                    </button>
-
-                    <button
-                      className="danger"
-                      onClick={() => deleteTodo(todo._id, todo.title)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </article>
-              ))}
             </div>
-          )}
-        </section>
+          </header>
 
-        <section className="module-card">
-          <h2>Drive</h2>
+          <section className="modules-grid">
+            <section className="module-card">
+              <h2>Todo List</h2>
 
-          <form onSubmit={uploadFile} className="form">
-            <input
-              type="file"
-              name="file"
-              onChange={handleFileChange}
-            />
+              <form onSubmit={handleSubmit} className="form">
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="Título de la tarea"
+                  value={form.title}
+                  onChange={handleChange}
+                />
 
-            <button type="submit">
-              Subir archivo
-            </button>
-          </form>
+                <textarea
+                  name="description"
+                  placeholder="Descripción"
+                  value={form.description}
+                  onChange={handleChange}
+                />
 
-          <div className="section-title">
-            <h3>Archivos subidos</h3>
-          </div>
+                <button type="submit">
+                  {editingId ? 'Actualizar tarea' : 'Crear tarea'}
+                </button>
 
-          {loadingFiles ? (
-            <p>Cargando archivos...</p>
-          ) : files.length === 0 ? (
-            <p>No hay archivos subidos para este usuario.</p>
-          ) : (
-            <div className="files-table-wrapper">
-              <table className="files-table">
-                <thead>
-                  <tr>
-                    <th>Nombre del archivo</th>
-                    <th>Fecha de creación</th>
-                    <th>Tipo</th>
-                    <th>Tamaño</th>
-                    <th>Botones</th>
-                  </tr>
-                </thead>
+                {editingId && (
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => {
+                      setEditingId(null)
+                      setForm({ title: '', description: '' })
+                    }}
+                  >
+                    Cancelar edición
+                  </button>
+                )}
+              </form>
 
-                <tbody>
-                  {files.map((file) => (
-                    <tr key={file._id}>
-                      <td>{file.displayName}</td>
-                      <td>{formatDate(file.createdAt)}</td>
-                      <td>{file.mimeType}</td>
-                      <td>{file.sizeFormatted}</td>
-                      <td>
-                        <div className="table-actions">
-                          <button onClick={() => downloadFile(file)}>
-                            Descargar
-                          </button>
+              <div className="section-title">
+                <h3>Lista de tareas</h3>
+              </div>
 
-                          <button onClick={() => editFile(file)}>
-                            Editar
-                          </button>
+              {loadingTodos ? (
+                <p>Cargando tareas...</p>
+              ) : todos.length === 0 ? (
+                <p>No hay tareas registradas para este usuario.</p>
+              ) : (
+                <div className="todo-list">
+                  {todos.map((todo) => (
+                    <article key={todo._id} className="todo-item">
+                      <div>
+                        <h4 className={todo.completed ? 'completed-title' : ''}>
+                          {todo.title}
+                        </h4>
 
-                          <button
-                            className="danger"
-                            onClick={() => deleteFile(file)}
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                        <p>{todo.description || 'Sin descripción'}</p>
+
+                        <span className={todo.completed ? 'badge done' : 'badge pending'}>
+                          {todo.completed ? 'Completada' : 'Pendiente'}
+                        </span>
+                      </div>
+
+                      <div className="actions">
+                        <button onClick={() => toggleCompleted(todo)}>
+                          {todo.completed ? 'Pendiente' : 'Completar'}
+                        </button>
+
+                        <button onClick={() => startEdit(todo)}>
+                          Editar
+                        </button>
+
+                        <button
+                          className="danger"
+                          onClick={() => deleteTodo(todo._id, todo.title)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </article>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </section>
+                </div>
+              )}
+            </section>
+
+            <section className="module-card">
+              <h2>Drive</h2>
+
+              <form onSubmit={uploadFile} className="form">
+                <input
+                  type="file"
+                  name="file"
+                  onChange={handleFileChange}
+                />
+
+                <button type="submit">
+                  Subir archivo
+                </button>
+              </form>
+
+              <div className="section-title">
+                <h3>Archivos subidos</h3>
+              </div>
+
+              {loadingFiles ? (
+                <p>Cargando archivos...</p>
+              ) : files.length === 0 ? (
+                <p>No hay archivos subidos para este usuario.</p>
+              ) : (
+                <div className="files-table-wrapper">
+                  <table className="files-table">
+                    <thead>
+                      <tr>
+                        <th>Nombre del archivo</th>
+                        <th>Fecha de creación</th>
+                        <th>Tipo</th>
+                        <th>Tamaño</th>
+                        <th>Botones</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {files.map((file) => (
+                        <tr key={file._id}>
+                          <td>{file.displayName}</td>
+                          <td>{formatDate(file.createdAt)}</td>
+                          <td>{file.mimeType}</td>
+                          <td>{file.sizeFormatted}</td>
+                          <td>
+                            <div className="table-actions">
+                              <button onClick={() => downloadFile(file)}>
+                                Descargar
+                              </button>
+
+                              <button onClick={() => editFile(file)}>
+                                Editar
+                              </button>
+
+                              <button
+                                className="danger"
+                                onClick={() => deleteFile(file)}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </section>
+        </>
+      )}
     </main>
   )
 }
