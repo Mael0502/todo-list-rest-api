@@ -972,3 +972,25 @@ La interfaz web en Render.
 Las rutas API en Postman.
 La base de datos MongoDB Atlas.
 El repositorio en GitHub.
+## Autenticación
+
+El proyecto utiliza autenticación con JWT y bcrypt.
+
+- `bcryptjs` se usa para encriptar contraseñas.
+- `jsonwebtoken` se usa para generar tokens JWT.
+- React guarda el token en `localStorage`.
+- Las rutas `/api/todos` y `/api/files` están protegidas.
+- Cada usuario solo puede ver sus propias tareas y archivos.
+
+### Rutas de autenticación
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/auth/register` | Registrar usuario |
+| POST | `/api/auth/login` | Iniciar sesión |
+| GET | `/api/auth/me` | Obtener usuario autenticado |
+
+Para usar rutas protegidas en Postman se debe enviar:
+
+```txt
+Authorization: Bearer TOKEN
