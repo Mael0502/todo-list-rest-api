@@ -32,6 +32,26 @@ function App() {
   const [todos, setTodos] = useState([])
   const [files, setFiles] = useState([])
 
+  const [todoPage, setTodoPage] = useState(1)
+  const [filePage, setFilePage] = useState(1)
+
+  const [todoMeta, setTodoMeta] = useState({
+    page: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false
+  })
+
+  const [fileMeta, setFileMeta] = useState({
+    page: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false
+  })
+
+  const TODO_LIMIT = 5
+  const FILE_LIMIT = 5
+
   const [form, setForm] = useState({
     title: '',
     description: ''
@@ -82,6 +102,25 @@ function App() {
     })
   }
 
+  const resetPagination = () => {
+    setTodoPage(1)
+    setFilePage(1)
+
+    setTodoMeta({
+      page: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false
+    })
+
+    setFileMeta({
+      page: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false
+    })
+  }
+
   const getAuthHeaders = () => ({
     Authorization: `Bearer ${token}`
   })
@@ -106,13 +145,14 @@ function App() {
     })
     setSelectedFile(null)
     resetUploadToast()
+    resetPagination()
   }
 
-  const getTodos = async () => {
+  const getTodos = async (page = todoPage) => {
     if (!token) return
 
     try {
-      const response = await fetch(TODOS_API, {
+      const response = await fetch(`${TODOS_API}?page=${page}&limit=${TODO_LIMIT}`, {
         headers: getAuthHeaders()
       })
 
@@ -122,17 +162,24 @@ function App() {
       }
 
       const result = await response.json()
+
       setTodos(result.data || [])
+      setTodoMeta(result.meta || {
+        page: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false
+      })
     } catch (error) {
       console.error('Error al obtener tareas:', error)
     }
   }
 
-  const getFiles = async () => {
+  const getFiles = async (page = filePage) => {
     if (!token) return
 
     try {
-      const response = await fetch(FILES_API, {
+      const response = await fetch(`${FILES_API}?page=${page}&limit=${FILE_LIMIT}`, {
         headers: getAuthHeaders()
       })
 
@@ -142,7 +189,14 @@ function App() {
       }
 
       const result = await response.json()
+
       setFiles(result.data || [])
+      setFileMeta(result.meta || {
+        page: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false
+      })
     } catch (error) {
       console.error('Error al obtener archivos:', error)
     }
@@ -219,6 +273,7 @@ function App() {
 
       setToken(result.token)
       setUser(result.data)
+      resetPagination()
 
       setAuthForm({
         name: '',
@@ -254,6 +309,7 @@ function App() {
         })
 
         setEditingId(null)
+        await getTodos(todoPage)
       } else {
         await fetch(TODOS_API, {
           method: 'POST',
@@ -264,14 +320,15 @@ function App() {
             completed: false
           })
         })
+
+        setTodoPage(1)
+        await getTodos(1)
       }
 
       setForm({
         title: '',
         description: ''
       })
-
-      await getTodos()
     } catch (error) {
       console.error('Error al guardar tarea:', error)
     }
@@ -295,7 +352,7 @@ function App() {
         })
       })
 
-      await getTodos()
+      await getTodos(todoPage)
     } catch (error) {
       console.error('Error al actualizar estado:', error)
     }
@@ -320,7 +377,11 @@ function App() {
         headers: getAuthHeaders()
       })
 
-      await getTodos()
+      const shouldGoBack = todos.length === 1 && todoPage > 1
+      const nextPage = shouldGoBack ? todoPage - 1 : todoPage
+
+      setTodoPage(nextPage)
+      await getTodos(nextPage)
     } catch (error) {
       console.error('Error al eliminar tarea:', error)
     }
@@ -386,7 +447,8 @@ function App() {
         setSelectedFile(null)
         formElement.reset()
 
-        await getFiles()
+        setFilePage(1)
+        await getFiles(1)
 
         setTimeout(() => {
           resetUploadToast()
@@ -477,7 +539,7 @@ function App() {
         })
       })
 
-      await getFiles()
+      await getFiles(filePage)
     } catch (error) {
       console.error('Error al editar archivo:', error)
     }
@@ -496,10 +558,46 @@ function App() {
         headers: getAuthHeaders()
       })
 
-      await getFiles()
+      const shouldGoBack = files.length === 1 && filePage > 1
+      const nextPage = shouldGoBack ? filePage - 1 : filePage
+
+      setFilePage(nextPage)
+      await getFiles(nextPage)
     } catch (error) {
       console.error('Error al eliminar archivo:', error)
     }
+  }
+
+  const goToPreviousTodos = () => {
+    if (!todoMeta.hasPrevPage) return
+
+    const previousPage = todoMeta.page - 1
+    setTodoPage(previousPage)
+    getTodos(previousPage)
+  }
+
+  const goToNextTodos = () => {
+    if (!todoMeta.hasNextPage) return
+
+    const nextPage = todoMeta.page + 1
+    setTodoPage(nextPage)
+    getTodos(nextPage)
+  }
+
+  const goToPreviousFiles = () => {
+    if (!fileMeta.hasPrevPage) return
+
+    const previousPage = fileMeta.page - 1
+    setFilePage(previousPage)
+    getFiles(previousPage)
+  }
+
+  const goToNextFiles = () => {
+    if (!fileMeta.hasNextPage) return
+
+    const nextPage = fileMeta.page + 1
+    setFilePage(nextPage)
+    getFiles(nextPage)
   }
 
   const formatDate = (dateValue) => {
@@ -525,12 +623,12 @@ function App() {
         setLoadingFiles(true)
 
         const [todosResponse, filesResponse] = await Promise.all([
-          fetch(TODOS_API, {
+          fetch(`${TODOS_API}?page=1&limit=${TODO_LIMIT}`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
           }),
-          fetch(FILES_API, {
+          fetch(`${FILES_API}?page=1&limit=${FILE_LIMIT}`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -548,6 +646,23 @@ function App() {
         if (!ignore) {
           setTodos(todosResult.data || [])
           setFiles(filesResult.data || [])
+
+          setTodoPage(todosResult.meta?.page || 1)
+          setFilePage(filesResult.meta?.page || 1)
+
+          setTodoMeta(todosResult.meta || {
+            page: 1,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPrevPage: false
+          })
+
+          setFileMeta(filesResult.meta || {
+            page: 1,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPrevPage: false
+          })
         }
       } catch (error) {
         if (!ignore) {
@@ -722,40 +837,64 @@ function App() {
               ) : todos.length === 0 ? (
                 <p>No hay tareas registradas para este usuario.</p>
               ) : (
-                <div className="todo-list">
-                  {todos.map((todo) => (
-                    <article key={todo._id} className="todo-item">
-                      <div>
-                        <h4 className={todo.completed ? 'completed-title' : ''}>
-                          {todo.title}
-                        </h4>
+                <>
+                  <div className="todo-list">
+                    {todos.map((todo) => (
+                      <article key={todo._id} className="todo-item">
+                        <div>
+                          <h4 className={todo.completed ? 'completed-title' : ''}>
+                            {todo.title}
+                          </h4>
 
-                        <p>{todo.description || 'Sin descripción'}</p>
+                          <p>{todo.description || 'Sin descripción'}</p>
 
-                        <span className={todo.completed ? 'badge done' : 'badge pending'}>
-                          {todo.completed ? 'Completada' : 'Pendiente'}
-                        </span>
-                      </div>
+                          <span className={todo.completed ? 'badge done' : 'badge pending'}>
+                            {todo.completed ? 'Completada' : 'Pendiente'}
+                          </span>
+                        </div>
 
-                      <div className="actions">
-                        <button onClick={() => toggleCompleted(todo)}>
-                          {todo.completed ? 'Pendiente' : 'Completar'}
-                        </button>
+                        <div className="actions">
+                          <button onClick={() => toggleCompleted(todo)}>
+                            {todo.completed ? 'Pendiente' : 'Completar'}
+                          </button>
 
-                        <button onClick={() => startEdit(todo)}>
-                          Editar
-                        </button>
+                          <button onClick={() => startEdit(todo)}>
+                            Editar
+                          </button>
 
-                        <button
-                          className="danger"
-                          onClick={() => deleteTodo(todo._id, todo.title)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                          <button
+                            className="danger"
+                            onClick={() => deleteTodo(todo._id, todo.title)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="pagination">
+                    <button
+                      type="button"
+                      disabled={!todoMeta.hasPrevPage}
+                      onClick={goToPreviousTodos}
+                    >
+                      Anterior
+                    </button>
+
+                    <span>
+                      Página {todoMeta.page || 1} de {todoMeta.totalPages || 1}
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={!todoMeta.hasNextPage}
+                      onClick={goToNextTodos}
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </>
               )}
             </section>
 
@@ -783,48 +922,72 @@ function App() {
               ) : files.length === 0 ? (
                 <p>No hay archivos subidos para este usuario.</p>
               ) : (
-                <div className="files-table-wrapper">
-                  <table className="files-table">
-                    <thead>
-                      <tr>
-                        <th>Nombre del archivo</th>
-                        <th>Fecha de creación</th>
-                        <th>Tipo</th>
-                        <th>Tamaño</th>
-                        <th>Botones</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {files.map((file) => (
-                        <tr key={file._id}>
-                          <td>{file.displayName}</td>
-                          <td>{formatDate(file.createdAt)}</td>
-                          <td>{file.mimeType}</td>
-                          <td>{file.sizeFormatted}</td>
-                          <td>
-                            <div className="table-actions">
-                              <button onClick={() => downloadFile(file)}>
-                                Descargar
-                              </button>
-
-                              <button onClick={() => editFile(file)}>
-                                Editar
-                              </button>
-
-                              <button
-                                className="danger"
-                                onClick={() => deleteFile(file)}
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          </td>
+                <>
+                  <div className="files-table-wrapper">
+                    <table className="files-table">
+                      <thead>
+                        <tr>
+                          <th>Nombre del archivo</th>
+                          <th>Fecha de creación</th>
+                          <th>Tipo</th>
+                          <th>Tamaño</th>
+                          <th>Botones</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+
+                      <tbody>
+                        {files.map((file) => (
+                          <tr key={file._id}>
+                            <td>{file.displayName}</td>
+                            <td>{formatDate(file.createdAt)}</td>
+                            <td>{file.mimeType}</td>
+                            <td>{file.sizeFormatted}</td>
+                            <td>
+                              <div className="table-actions">
+                                <button onClick={() => downloadFile(file)}>
+                                  Descargar
+                                </button>
+
+                                <button onClick={() => editFile(file)}>
+                                  Editar
+                                </button>
+
+                                <button
+                                  className="danger"
+                                  onClick={() => deleteFile(file)}
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="pagination">
+                    <button
+                      type="button"
+                      disabled={!fileMeta.hasPrevPage}
+                      onClick={goToPreviousFiles}
+                    >
+                      Anterior
+                    </button>
+
+                    <span>
+                      Página {fileMeta.page || 1} de {fileMeta.totalPages || 1}
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={!fileMeta.hasNextPage}
+                      onClick={goToNextFiles}
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </>
               )}
             </section>
           </section>
