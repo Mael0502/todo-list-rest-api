@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const todoRoutes = require('./routes/todoRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {
   });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/todos', todoRoutes);
 app.use('/todos', todoRoutes);
 app.use('/api/files', fileRoutes);
