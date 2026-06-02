@@ -56,10 +56,6 @@ body {
   color: var(--text-main);
 }
 
-/* ============================= */
-/* BARRA SUPERIOR */
-/* ============================= */
-
 .global-topbar {
   width: 100%;
   max-width: 1450px;
@@ -91,10 +87,6 @@ body {
   object-fit: contain;
   display: block;
 }
-
-/* ============================= */
-/* HEADER PRINCIPAL */
-/* ============================= */
 
 .main-header {
   width: 100%;
@@ -142,10 +134,6 @@ body {
   gap: 12px;
 }
 
-/* ============================= */
-/* MODO CLARO / OSCURO */
-/* ============================= */
-
 .theme-switch {
   display: inline-flex;
   align-items: center;
@@ -183,10 +171,6 @@ body {
   font-size: 16px;
   line-height: 1;
 }
-
-/* ============================= */
-/* BOTONES */
-/* ============================= */
 
 button {
   padding: 11px 14px;
@@ -236,10 +220,6 @@ button:disabled {
   background: var(--primary-dark);
 }
 
-/* ============================= */
-/* ESTRUCTURA GENERAL */
-/* ============================= */
-
 .modules-grid {
   width: 100%;
   max-width: 1450px;
@@ -283,10 +263,6 @@ button:disabled {
   text-align: center;
 }
 
-/* ============================= */
-/* FORMULARIOS */
-/* ============================= */
-
 .form,
 .auth-form {
   display: grid;
@@ -313,10 +289,6 @@ textarea {
   min-height: 95px;
   resize: vertical;
 }
-
-/* ============================= */
-/* LOGIN / REGISTRO */
-/* ============================= */
 
 .auth-card {
   width: 100%;
@@ -378,10 +350,6 @@ textarea {
   font-weight: 600;
 }
 
-/* ============================= */
-/* TODO LIST */
-/* ============================= */
-
 .todo-list {
   display: grid;
   gap: 14px;
@@ -440,18 +408,6 @@ textarea {
   flex-direction: column;
   gap: 8px;
 }
-
-.actions button.danger {
-  background: var(--danger);
-}
-
-.actions button.danger:hover {
-  background: var(--danger-dark);
-}
-
-/* ============================= */
-/* DRIVE */
-/* ============================= */
 
 .files-table-wrapper {
   width: 100%;
@@ -524,18 +480,6 @@ textarea {
   font-size: 13px;
 }
 
-.table-actions button.danger {
-  background: var(--danger);
-}
-
-.table-actions button.danger:hover {
-  background: var(--danger-dark);
-}
-
-/* ============================= */
-/* PAGINACIÓN */
-/* ============================= */
-
 .pagination {
   display: flex;
   justify-content: center;
@@ -546,11 +490,6 @@ textarea {
   padding-bottom: 20px;
   border-top: 1px solid var(--border);
   clear: both;
-}
-
-.todo-list + .pagination,
-.files-table-wrapper + .pagination {
-  margin-top: 70px;
 }
 
 .pagination span {
@@ -572,9 +511,55 @@ textarea {
   background: var(--primary);
 }
 
-/* ============================= */
-/* MODAL EMERGENTE REAL */
-/* ============================= */
+.app-footer {
+  width: 100%;
+  max-width: 1450px;
+  margin: 36px auto 0 auto;
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  color: var(--text-main);
+}
+
+.app-footer h3 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.app-footer p {
+  margin: 6px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.footer-link {
+  display: inline-block;
+  margin: 16px 0 12px 0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  transition: background 0.2s ease;
+}
+
+.footer-link:hover {
+  background: var(--primary-dark);
+}
+
+.app-footer span {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
 
 .modal-backdrop {
   position: fixed;
@@ -661,10 +646,6 @@ textarea {
 .modal-confirm:hover {
   background: var(--primary-dark);
 }
-
-/* ============================= */
-/* VENTANA DE SUBIDA TIPO DRIVE */
-/* ============================= */
 
 .upload-toast {
   position: fixed;
@@ -767,10 +748,6 @@ textarea {
   border-radius: 999px;
   transition: width 0.2s ease;
 }
-
-/* ============================= */
-/* RESPONSIVE */
-/* ============================= */
 
 @media (max-width: 1200px) {
   .modules-grid {

@@ -1178,6 +1178,35 @@ function App() {
         </>
       )}
 
+      <footer className="app-footer">
+        <h3>Todo List | Drive</h3>
+
+        <p>
+          Aplicación web desarrollada con React, Express, MongoDB Atlas, GridFS y autenticación JWT.
+        </p>
+
+        <p>
+          Proyecto académico - Universidad Mayor de San Simón
+        </p>
+
+        <p>
+          Desarrollado por: Amilcar Diego Revollo Bernal
+        </p>
+
+        <a
+          href="https://github.com/Mael0502/todo-list-rest-api.git"
+          target="_blank"
+          rel="noreferrer"
+          className="footer-link"
+        >
+          Ver repositorio en GitHub
+        </a>
+
+        <span>
+          © 2026 Todo List | Drive
+        </span>
+      </footer>
+
       {modal.visible && (
         <div className="modal-backdrop">
           <section className="app-modal">
