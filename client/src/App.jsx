@@ -39,6 +39,18 @@ const initialModal = {
   loading: false
 }
 
+const initialTodoFilters = {
+  search: '',
+  status: 'all',
+  sort: 'newest'
+}
+
+const initialFileFilters = {
+  search: '',
+  type: 'all',
+  sort: 'newest'
+}
+
 function App() {
   const modalActionRef = useRef(null)
 
@@ -76,6 +88,9 @@ function App() {
     password: ''
   })
 
+  const [todoFilters, setTodoFilters] = useState(initialTodoFilters)
+  const [fileFilters, setFileFilters] = useState(initialFileFilters)
+
   const [selectedFile, setSelectedFile] = useState(null)
 
   const [uploadToast, setUploadToast] = useState({
@@ -106,6 +121,48 @@ function App() {
   const TODOS_API = '/api/todos'
   const FILES_API = '/api/files'
   const AUTH_API = '/api/auth'
+
+  const buildTodoUrl = (page = 1, filters = todoFilters) => {
+    const params = new URLSearchParams()
+
+    params.set('page', page)
+    params.set('limit', TODO_LIMIT)
+
+    if (filters.search.trim()) {
+      params.set('search', filters.search.trim())
+    }
+
+    if (filters.status && filters.status !== 'all') {
+      params.set('status', filters.status)
+    }
+
+    if (filters.sort) {
+      params.set('sort', filters.sort)
+    }
+
+    return `${TODOS_API}?${params.toString()}`
+  }
+
+  const buildFileUrl = (page = 1, filters = fileFilters) => {
+    const params = new URLSearchParams()
+
+    params.set('page', page)
+    params.set('limit', FILE_LIMIT)
+
+    if (filters.search.trim()) {
+      params.set('search', filters.search.trim())
+    }
+
+    if (filters.type && filters.type !== 'all') {
+      params.set('type', filters.type)
+    }
+
+    if (filters.sort) {
+      params.set('sort', filters.sort)
+    }
+
+    return `${FILES_API}?${params.toString()}`
+  }
 
   const closeModal = () => {
     modalActionRef.current = null
@@ -268,6 +325,8 @@ function App() {
       description: ''
     })
     setSelectedFile(null)
+    setTodoFilters(initialTodoFilters)
+    setFileFilters(initialFileFilters)
     resetUploadToast()
     resetPagination()
   }
@@ -284,11 +343,13 @@ function App() {
     })
   }
 
-  const getTodos = async (page = todoPage) => {
+  const getTodos = async (page = todoPage, filters = todoFilters) => {
     if (!token) return
 
     try {
-      const response = await fetch(`${TODOS_API}?page=${page}&limit=${TODO_LIMIT}`, {
+      setLoadingTodos(true)
+
+      const response = await fetch(buildTodoUrl(page, filters), {
         headers: getAuthHeaders()
       })
 
@@ -313,14 +374,18 @@ function App() {
         title: 'Error al cargar tareas',
         message: 'No se pudieron obtener las tareas del usuario.'
       })
+    } finally {
+      setLoadingTodos(false)
     }
   }
 
-  const getFiles = async (page = filePage) => {
+  const getFiles = async (page = filePage, filters = fileFilters) => {
     if (!token) return
 
     try {
-      const response = await fetch(`${FILES_API}?page=${page}&limit=${FILE_LIMIT}`, {
+      setLoadingFiles(true)
+
+      const response = await fetch(buildFileUrl(page, filters), {
         headers: getAuthHeaders()
       })
 
@@ -345,6 +410,8 @@ function App() {
         title: 'Error al cargar archivos',
         message: 'No se pudieron obtener los archivos del usuario.'
       })
+    } finally {
+      setLoadingFiles(false)
     }
   }
 
@@ -364,6 +431,48 @@ function App() {
       ...authForm,
       [name]: value
     })
+  }
+
+  const handleTodoFilterChange = (event) => {
+    const { name, value } = event.target
+
+    setTodoFilters((previous) => ({
+      ...previous,
+      [name]: value
+    }))
+  }
+
+  const handleFileFilterChange = (event) => {
+    const { name, value } = event.target
+
+    setFileFilters((previous) => ({
+      ...previous,
+      [name]: value
+    }))
+  }
+
+  const applyTodoFilters = (event) => {
+    event.preventDefault()
+    setTodoPage(1)
+    getTodos(1, todoFilters)
+  }
+
+  const clearTodoFilters = () => {
+    setTodoFilters(initialTodoFilters)
+    setTodoPage(1)
+    getTodos(1, initialTodoFilters)
+  }
+
+  const applyFileFilters = (event) => {
+    event.preventDefault()
+    setFilePage(1)
+    getFiles(1, fileFilters)
+  }
+
+  const clearFileFilters = () => {
+    setFileFilters(initialFileFilters)
+    setFilePage(1)
+    getFiles(1, initialFileFilters)
   }
 
   const handleAuthSubmit = async (event) => {
@@ -471,7 +580,7 @@ function App() {
         })
 
         setEditingId(null)
-        await getTodos(todoPage)
+        await getTodos(todoPage, todoFilters)
       } else {
         await fetch(TODOS_API, {
           method: 'POST',
@@ -484,7 +593,7 @@ function App() {
         })
 
         setTodoPage(1)
-        await getTodos(1)
+        await getTodos(1, todoFilters)
       }
 
       setForm({
@@ -518,7 +627,7 @@ function App() {
           })
         })
 
-        await getTodos(todoPage)
+        await getTodos(todoPage, todoFilters)
       }
     })
   }
@@ -547,7 +656,7 @@ function App() {
         const nextPage = shouldGoBack ? todoPage - 1 : todoPage
 
         setTodoPage(nextPage)
-        await getTodos(nextPage)
+        await getTodos(nextPage, todoFilters)
       }
     })
   }
@@ -601,7 +710,7 @@ function App() {
         formElement.reset()
 
         setFilePage(1)
-        await getFiles(1)
+        await getFiles(1, fileFilters)
 
         setTimeout(() => {
           resetUploadToast()
@@ -724,7 +833,7 @@ function App() {
           })
         })
 
-        await getFiles(filePage)
+        await getFiles(filePage, fileFilters)
       }
     })
   }
@@ -745,7 +854,7 @@ function App() {
         const nextPage = shouldGoBack ? filePage - 1 : filePage
 
         setFilePage(nextPage)
-        await getFiles(nextPage)
+        await getFiles(nextPage, fileFilters)
       }
     })
   }
@@ -755,7 +864,7 @@ function App() {
 
     const previousPage = todoMeta.page - 1
     setTodoPage(previousPage)
-    getTodos(previousPage)
+    getTodos(previousPage, todoFilters)
   }
 
   const goToNextTodos = () => {
@@ -763,7 +872,7 @@ function App() {
 
     const nextPage = todoMeta.page + 1
     setTodoPage(nextPage)
-    getTodos(nextPage)
+    getTodos(nextPage, todoFilters)
   }
 
   const goToPreviousFiles = () => {
@@ -771,7 +880,7 @@ function App() {
 
     const previousPage = fileMeta.page - 1
     setFilePage(previousPage)
-    getFiles(previousPage)
+    getFiles(previousPage, fileFilters)
   }
 
   const goToNextFiles = () => {
@@ -779,7 +888,7 @@ function App() {
 
     const nextPage = fileMeta.page + 1
     setFilePage(nextPage)
-    getFiles(nextPage)
+    getFiles(nextPage, fileFilters)
   }
 
   const formatDate = (dateValue) => {
@@ -805,12 +914,12 @@ function App() {
         setLoadingFiles(true)
 
         const [todosResponse, filesResponse] = await Promise.all([
-          fetch(`${TODOS_API}?page=1&limit=${TODO_LIMIT}`, {
+          fetch(buildTodoUrl(1, todoFilters), {
             headers: {
               Authorization: `Bearer ${token}`
             }
           }),
-          fetch(`${FILES_API}?page=1&limit=${FILE_LIMIT}`, {
+          fetch(buildFileUrl(1, fileFilters), {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -1014,10 +1123,53 @@ function App() {
                 <h3>Lista de tareas</h3>
               </div>
 
+              <form className="filter-panel" onSubmit={applyTodoFilters}>
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Buscar tarea por título o descripción"
+                  value={todoFilters.search}
+                  onChange={handleTodoFilterChange}
+                />
+
+                <select
+                  name="status"
+                  value={todoFilters.status}
+                  onChange={handleTodoFilterChange}
+                >
+                  <option value="all">Todas</option>
+                  <option value="pending">Pendientes</option>
+                  <option value="completed">Completadas</option>
+                </select>
+
+                <select
+                  name="sort"
+                  value={todoFilters.sort}
+                  onChange={handleTodoFilterChange}
+                >
+                  <option value="newest">Más recientes</option>
+                  <option value="oldest">Más antiguas</option>
+                  <option value="title_asc">Título A-Z</option>
+                  <option value="title_desc">Título Z-A</option>
+                </select>
+
+                <div className="filter-actions">
+                  <button type="submit">Buscar</button>
+
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={clearTodoFilters}
+                  >
+                    Limpiar
+                  </button>
+                </div>
+              </form>
+
               {loadingTodos ? (
                 <p>Cargando tareas...</p>
               ) : todos.length === 0 ? (
-                <p>No hay tareas registradas para este usuario.</p>
+                <p>No hay tareas que coincidan con los filtros actuales.</p>
               ) : (
                 <>
                   <div className="todo-list">
@@ -1100,10 +1252,57 @@ function App() {
                 <h3>Archivos subidos</h3>
               </div>
 
+              <form className="filter-panel" onSubmit={applyFileFilters}>
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Buscar archivo por nombre"
+                  value={fileFilters.search}
+                  onChange={handleFileFilterChange}
+                />
+
+                <select
+                  name="type"
+                  value={fileFilters.type}
+                  onChange={handleFileFilterChange}
+                >
+                  <option value="all">Todos los tipos</option>
+                  <option value="image">Imágenes</option>
+                  <option value="pdf">PDF</option>
+                  <option value="text">Texto</option>
+                  <option value="other">Otros</option>
+                </select>
+
+                <select
+                  name="sort"
+                  value={fileFilters.sort}
+                  onChange={handleFileFilterChange}
+                >
+                  <option value="newest">Más recientes</option>
+                  <option value="oldest">Más antiguos</option>
+                  <option value="size_desc">Tamaño mayor</option>
+                  <option value="size_asc">Tamaño menor</option>
+                  <option value="name_asc">Nombre A-Z</option>
+                  <option value="name_desc">Nombre Z-A</option>
+                </select>
+
+                <div className="filter-actions">
+                  <button type="submit">Buscar</button>
+
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={clearFileFilters}
+                  >
+                    Limpiar
+                  </button>
+                </div>
+              </form>
+
               {loadingFiles ? (
                 <p>Cargando archivos...</p>
               ) : files.length === 0 ? (
-                <p>No hay archivos subidos para este usuario.</p>
+                <p>No hay archivos que coincidan con los filtros actuales.</p>
               ) : (
                 <>
                   <div className="files-table-wrapper">

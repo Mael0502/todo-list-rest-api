@@ -56,6 +56,10 @@ body {
   color: var(--text-main);
 }
 
+/* ============================= */
+/* BARRA SUPERIOR */
+/* ============================= */
+
 .global-topbar {
   width: 100%;
   max-width: 1450px;
@@ -87,6 +91,10 @@ body {
   object-fit: contain;
   display: block;
 }
+
+/* ============================= */
+/* HEADER PRINCIPAL */
+/* ============================= */
 
 .main-header {
   width: 100%;
@@ -134,6 +142,10 @@ body {
   gap: 12px;
 }
 
+/* ============================= */
+/* MODO CLARO / OSCURO */
+/* ============================= */
+
 .theme-switch {
   display: inline-flex;
   align-items: center;
@@ -171,6 +183,10 @@ body {
   font-size: 16px;
   line-height: 1;
 }
+
+/* ============================= */
+/* BOTONES */
+/* ============================= */
 
 button {
   padding: 11px 14px;
@@ -220,6 +236,10 @@ button:disabled {
   background: var(--primary-dark);
 }
 
+/* ============================= */
+/* ESTRUCTURA GENERAL */
+/* ============================= */
+
 .modules-grid {
   width: 100%;
   max-width: 1450px;
@@ -237,6 +257,7 @@ button:disabled {
   padding: 24px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
+  overflow: hidden;
 }
 
 .module-card h2 {
@@ -263,6 +284,10 @@ button:disabled {
   text-align: center;
 }
 
+/* ============================= */
+/* FORMULARIOS */
+/* ============================= */
+
 .form,
 .auth-form {
   display: grid;
@@ -270,8 +295,10 @@ button:disabled {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
+  min-width: 0;
   padding: 13px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -289,6 +316,14 @@ textarea {
   min-height: 95px;
   resize: vertical;
 }
+
+select {
+  cursor: pointer;
+}
+
+/* ============================= */
+/* LOGIN / REGISTRO */
+/* ============================= */
 
 .auth-card {
   width: 100%;
@@ -350,6 +385,43 @@ textarea {
   font-weight: 600;
 }
 
+/* ============================= */
+/* FILTROS Y BÚSQUEDA */
+/* ============================= */
+
+.filter-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+
+.filter-panel input,
+.filter-panel select {
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.filter-actions button {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ============================= */
+/* TODO LIST */
+/* ============================= */
+
 .todo-list {
   display: grid;
   gap: 14px;
@@ -408,6 +480,10 @@ textarea {
   flex-direction: column;
   gap: 8px;
 }
+
+/* ============================= */
+/* DRIVE */
+/* ============================= */
 
 .files-table-wrapper {
   width: 100%;
@@ -480,6 +556,10 @@ textarea {
   font-size: 13px;
 }
 
+/* ============================= */
+/* PAGINACIÓN */
+/* ============================= */
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -510,6 +590,10 @@ textarea {
 .pagination button:disabled:hover {
   background: var(--primary);
 }
+
+/* ============================= */
+/* FOOTER */
+/* ============================= */
 
 .app-footer {
   width: 100%;
@@ -560,6 +644,10 @@ textarea {
   color: var(--text-muted);
   font-size: 13px;
 }
+
+/* ============================= */
+/* MODAL */
+/* ============================= */
 
 .modal-backdrop {
   position: fixed;
@@ -646,6 +734,10 @@ textarea {
 .modal-confirm:hover {
   background: var(--primary-dark);
 }
+
+/* ============================= */
+/* VENTANA DE SUBIDA */
+/* ============================= */
 
 .upload-toast {
   position: fixed;
@@ -749,6 +841,10 @@ textarea {
   transition: width 0.2s ease;
 }
 
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
 @media (max-width: 1200px) {
   .modules-grid {
     grid-template-columns: 1fr;
@@ -826,6 +922,10 @@ textarea {
   .actions {
     flex-direction: row;
     flex-wrap: wrap;
+  }
+
+  .filter-actions {
+    grid-template-columns: 1fr;
   }
 
   .pagination {
