@@ -1,996 +1,1048 @@
 # Todo List | Drive
 
-Aplicación web desarrollada con **Node.js**, **Express**, **MongoDB Atlas**, **Mongoose**, **GridFS**, **Pug**, **React**, **Vite** y **Postman**.
-
-El proyecto integra dos módulos principales dentro de la misma aplicación:
-
-- **Todo List**: gestión de tareas.
-- **Drive**: gestión de archivos.
-
-La aplicación está desplegada en Render y puede probarse desde cualquier computadora con navegador e internet.
+Aplicación web full-stack desarrollada con **React + Vite** en el frontend y **Node.js + Express** en el backend.
+Permite gestionar tareas y archivos tipo Drive desde una misma interfaz, con autenticación JWT, almacenamiento en MongoDB Atlas, subida de archivos con GridFS, paginación, búsqueda, filtros, ordenamiento y despliegue en la nube.
 
 ---
 
-## 1. Enlaces del proyecto
+## 👤 Autor
 
-### Aplicación desplegada en Render
+**Amilcar Diego Revollo Bernal**
 
-Página principal:
+Proyecto académico - Universidad Mayor de San Simón
+
+---
+
+## 📚 Descripción del Proyecto
+
+Este proyecto integra dos módulos principales en una sola aplicación web:
 
 ```txt
-https://todo-list-rest-api-nzt3.onrender.com
-
-Aplicación React con Todo List y Drive:
-
-https://todo-list-rest-api-nzt3.onrender.com/app/
-
-Vista Pug de tareas:
-
-https://todo-list-rest-api-nzt3.onrender.com/todos
-
-API de tareas:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos
-
-API de archivos:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files
-Repositorio GitHub
-https://github.com/Mael0502/todo-list-rest-api
-
-
-2. Descripción general
-
-Este proyecto es una aplicación web que permite administrar tareas y archivos desde una misma interfaz.
-
-La aplicación se divide visualmente en dos secciones:
-
 Todo List | Drive
+```
 
-El módulo Todo List permite:
+### Módulo Todo List
 
-Crear tareas.
-Listar tareas.
-Editar tareas.
-Marcar tareas como completadas o pendientes.
-Eliminar tareas.
+Permite al usuario autenticado:
 
-El módulo Drive permite:
+* Crear tareas.
+* Listar tareas.
+* Editar tareas.
+* Marcar tareas como completadas o pendientes.
+* Eliminar tareas.
+* Buscar tareas por título o descripción.
+* Filtrar tareas por estado: todas, pendientes o completadas.
+* Ordenar tareas por fecha o título.
+* Usar paginación para evitar listas infinitas.
 
-Subir archivos.
-Listar archivos.
-Descargar archivos.
-Editar el nombre visible de los archivos.
-Eliminar archivos.
+### Módulo Drive
 
-Ambos módulos consumen una API REST desarrollada con Express y conectada a MongoDB Atlas.
+Permite al usuario autenticado:
 
-3. Tecnologías utilizadas
-Backend
-Node.js
-Express
-MongoDB Atlas
-Mongoose
-GridFS
-Multer
-Pug
-dotenv
-Frontend
-React
-Vite
-CSS
-Fetch API
-Herramientas
-Postman
-Git
-GitHub
-Render
-4. Requisitos para acceder y probar el proyecto
+* Subir archivos.
+* Listar archivos subidos.
+* Descargar archivos.
+* Editar el nombre visible de un archivo.
+* Eliminar archivos.
+* Buscar archivos por nombre.
+* Filtrar archivos por tipo: imágenes, PDF, texto u otros.
+* Ordenar archivos por fecha, tamaño o nombre.
+* Usar paginación.
+* Visualizar una ventana de progreso durante la subida de archivos.
 
-El proyecto puede probarse de dos formas:
+---
 
-Desde la web usando Render.
-Localmente clonando el repositorio desde GitHub.
-5. Requisitos para probar desde la web
+## 🚀 Tecnologías Utilizadas
 
-Para probar el proyecto desplegado en Render no es necesario instalar Node.js, MongoDB ni ejecutar comandos.
+### Frontend
 
-Solo se necesita:
+* React
+* Vite
+* JavaScript
+* CSS
+* Fetch API
+* LocalStorage
 
-Navegador web.
-Conexión a internet.
-Postman, si se desea probar la API manualmente.
+### Backend
 
-El proyecto se puede abrir directamente desde:
+* Node.js
+* Express.js
+* MongoDB Atlas
+* Mongoose
+* GridFS
+* Multer
+* JWT
+* bcryptjs
+* dotenv
+* nodemon
 
-https://todo-list-rest-api-nzt3.onrender.com/app/
+### Herramientas
 
-Desde esa ruta se puede probar:
+* Git
+* GitHub
+* Postman
+* Render
+* MongoDB Atlas
 
-Todo List.
-Drive.
-Modo claro y modo oscuro.
-Subida de archivos.
-Descarga de archivos.
-Edición de archivos.
-Eliminación de archivos.
-Creación, edición y eliminación de tareas.
+---
 
-No es necesario instalar MongoDB localmente porque la base de datos está en MongoDB Atlas.
+## 📁 Estructura del Proyecto
 
-Tampoco es necesario ejecutar:
-
-npm run dev
-
-porque el servidor ya está desplegado y ejecutándose en Render.
-
-6. Nota sobre Render Free
-
-El proyecto está desplegado en Render usando un servicio gratuito.
-
-Render puede suspender la aplicación cuando pasa un tiempo sin recibir peticiones. Por eso, la primera vez que se abre la página puede tardar aproximadamente entre 30 y 60 segundos en cargar.
-
-Si aparece una pantalla de carga o tarda en responder, se debe esperar unos segundos y actualizar la página.
-
-7. Requisitos para probar con Postman
-
-Para probar las rutas manualmente se puede usar:
-
-Postman Desktop.
-Postman Web.
-
-En otra computadora no se debe usar:
-
-http://localhost:3000
-
-localhost solo funciona cuando el servidor está ejecutándose localmente en la misma computadora.
-
-Para probar la versión desplegada se debe usar:
-
-https://todo-list-rest-api-nzt3.onrender.com
-
-Ejemplo correcto:
-
-GET https://todo-list-rest-api-nzt3.onrender.com/api/todos
-
-Ejemplo incorrecto en otra computadora:
-
-GET http://localhost:3000/api/todos
-8. Requisitos para ejecutar el proyecto localmente
-
-Si se desea ejecutar el proyecto desde el código fuente, la computadora debe tener instalado:
-
-Git
-Node.js
-npm
-Visual Studio Code, opcional
-Postman, opcional
-
-No es necesario instalar:
-
-MongoDB local
-MongoDB Compass
-React global
-Vite global
-Base de datos local
-
-El proyecto usa MongoDB Atlas como base de datos en la nube.
-
-9. Variables de entorno
-
-El proyecto usa un archivo .env para guardar configuraciones sensibles.
-
-Este archivo no se sube a GitHub por seguridad.
-
-En local se debe crear un archivo .env en la raíz del proyecto con:
-
-MONGO_URI=tu_cadena_de_conexion_mongodb_atlas
-PORT=3000
-
-En Render, la variable MONGO_URI se configura desde:
-
-Environment Variables
-10. Cómo ejecutar el proyecto localmente
-Paso 1: clonar el repositorio
-git clone https://github.com/TU_USUARIO/todo-list-rest-api.git
-
-Entrar a la carpeta del proyecto:
-
-cd todo-list-rest-api
-Paso 2: instalar dependencias del backend
-npm install
-Paso 3: crear archivo .env
-
-Crear un archivo llamado:
-
-.env
-
-En la raíz del proyecto.
-
-Agregar:
-
-MONGO_URI=tu_cadena_de_conexion_mongodb_atlas
-PORT=3000
-Paso 4: compilar React
-npm run build
-
-Este comando instala las dependencias del frontend React y genera la carpeta:
-
-client/dist
-Paso 5: ejecutar el servidor local
-npm run dev
-
-Si todo está correcto, se podrán abrir las siguientes rutas:
-
-http://localhost:3000
-http://localhost:3000/app/
-http://localhost:3000/todos
-http://localhost:3000/api/todos
-http://localhost:3000/api/files
-
-11. Diferencia entre local y Render
-
-| Caso                | URL que se usa                                 | Qué se necesita                           |
-| ------------------- | ---------------------------------------------- | ----------------------------------------- |
-| Proyecto desplegado | `https://todo-list-rest-api-nzt3.onrender.com` | Navegador e internet                      |
-| Proyecto local      | `http://localhost:3000`                        | Node.js, npm, Git, `.env` y `npm run dev` |
-
-12. Estructura del proyecto
-
-todo-list-rest-api
-├── client
-│   ├── src
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── main.jsx
+```txt
+todo-list-rest-api/
+├── client/                         # Frontend React + Vite
+│   ├── dist/                       # Build de producción generado por Vite
+│   ├── public/                     # Archivos públicos
+│   ├── src/
+│   │   ├── assets/                 # Imágenes y recursos estáticos
+│   │   │   └── umss-logo.png
+│   │   ├── App.jsx                 # Componente principal de React
+│   │   ├── App.css                 # Estilos principales
+│   │   └── main.jsx                # Punto de entrada de React
 │   ├── package.json
 │   └── vite.config.js
 │
-├── src
-│   ├── config
-│   │   └── database.js
-│   ├── controllers
-│   │   ├── todoController.js
-│   │   └── fileController.js
-│   ├── models
-│   │   └── Todo.js
-│   ├── routes
-│   │   ├── todoRoutes.js
-│   │   └── fileRoutes.js
-│   ├── views
-│   │   ├── index.pug
-│   │   ├── layout.pug
-│   │   └── todos.pug
-│   └── app.js
+├── src/                            # Backend Express
+│   ├── config/
+│   │   └── database.js             # Conexión a MongoDB Atlas
+│   ├── controllers/
+│   │   ├── authController.js       # Registro, login y autenticación
+│   │   ├── todoController.js       # CRUD, búsqueda, filtros y paginación de tareas
+│   │   └── fileController.js       # Drive con GridFS
+│   ├── middlewares/
+│   │   └── authMiddleware.js       # Protección de rutas con JWT
+│   ├── models/
+│   │   ├── Todo.js                 # Modelo de tareas
+│   │   └── User.js                 # Modelo de usuarios
+│   ├── routes/
+│   │   ├── authRoutes.js           # Rutas de autenticación
+│   │   ├── todoRoutes.js           # Rutas de tareas
+│   │   └── fileRoutes.js           # Rutas de archivos
+│   ├── seed/
+│   │   └── seed.js                 # Carga de datos iniciales
+│   ├── views/                      # Vistas Pug iniciales
+│   └── app.js                      # Configuración principal de Express
 │
-├── server.js
-├── package.json
-├── .env.example
-├── .gitignore
-└── README.md
+├── .env.example                    # Plantilla de variables de entorno
+├── .gitignore                      # Archivos ignorados por Git
+├── package.json                    # Scripts y dependencias del backend
+├── package-lock.json
+├── README.md
+└── server.js                       # Punto de entrada del servidor
+```
 
-13. Explicación de archivos principales
-server.js
+---
 
-Es el punto de entrada del backend.
+## ⚙️ Requisitos Previos
 
-Se encarga de:
+Antes de instalar el proyecto, se debe tener instalado:
 
-Cargar variables de entorno.
-Conectar con MongoDB Atlas.
-Iniciar el servidor Express.
-src/app.js
-
-Configura la aplicación Express.
-
-Aquí se definen:
-
-Middlewares.
-Motor de vistas Pug.
-Rutas de tareas.
-Rutas de archivos.
-Ruta para servir React desde /app/.
-Manejo de rutas no encontradas.
-src/config/database.js
-
-Contiene la conexión con MongoDB Atlas usando Mongoose.
-
-src/models/Todo.js
-
-Define el modelo de datos de una tarea.
-
-Cada tarea contiene:
-
-title
-description
-completed
-createdAt
-updatedAt
-src/controllers/todoController.js
-
-Contiene la lógica del módulo Todo List.
-
-Permite:
-
-Obtener todas las tareas.
-Obtener una tarea por ID.
-Crear tareas.
-Actualizar tareas.
-Eliminar tareas.
-src/routes/todoRoutes.js
-
-Define las rutas REST del módulo Todo List.
-
-src/controllers/fileController.js
-
-Contiene la lógica del módulo Drive.
-
-Permite:
-
-Subir archivos con Multer.
-Guardar archivos en MongoDB Atlas usando GridFS.
-Listar archivos.
-Descargar archivos.
-Editar el nombre visible de los archivos.
-Eliminar archivos.
-src/routes/fileRoutes.js
-
-Define las rutas REST del módulo Drive.
-
-client/src/App.jsx
-
-Contiene la interfaz React principal.
-
-Incluye:
-
-Módulo Todo List.
-Módulo Drive.
-Modo claro y modo oscuro.
-Formularios.
-Tabla de archivos.
-Botones de acción.
-Ventanas emergentes de confirmación.
-client/src/App.css
-
-Contiene los estilos visuales de la aplicación React.
-
-14. Funcionamiento general del sistema
-
-El flujo general es:
-
-Usuario / Postman
-        ↓
-Render
-        ↓
-Express
-        ↓
-Mongoose / GridFS
-        ↓
+```txt
+Node.js
+npm
+Git
 MongoDB Atlas
-        ↓
-Respuesta JSON o vista web React/Pug
+Postman
+```
 
-La aplicación está desplegada en Render.
+Versiones recomendadas:
 
-Render ejecuta el servidor Express. Express se conecta a MongoDB Atlas.
+```txt
+Node.js 18 o superior
+npm 9 o superior
+```
 
-Las tareas se guardan como documentos normales usando Mongoose.
+Para verificar:
 
-Los archivos se guardan en MongoDB Atlas usando GridFS.
+```bash
+node -v
+npm -v
+git --version
+```
 
-15. Base de datos
+---
 
-La base de datos utilizada es MongoDB Atlas.
+## 🔐 Variables de Entorno
 
-El proyecto usa una base de datos llamada:
+El proyecto utiliza un archivo `.env` para guardar configuraciones privadas.
 
-todolist
+El archivo `.env` real **no debe subirse al repositorio**.
 
-Dentro de MongoDB Atlas se manejan estas colecciones:
+Se incluye un archivo `.env.example` como plantilla:
 
-todos
-driveFiles.files
-driveFiles.chunks
-Colección todos
+```env
+# ==============================
+# CONFIGURACIÓN DEL SERVIDOR
+# ==============================
 
-Guarda las tareas del módulo Todo List.
+PORT=3000
 
-Colección driveFiles.files
 
-Guarda los metadatos de los archivos subidos.
+# ==============================
+# BASE DE DATOS MONGODB ATLAS
+# ==============================
+# Reemplazar con la cadena real de MongoDB Atlas.
+# No subir el archivo .env real al repositorio.
 
-Por ejemplo:
+MONGO_URI=mongodb+srv://USUARIO:PASSWORD@CLUSTER.mongodb.net/NOMBRE_BASE_DATOS?retryWrites=true&w=majority
 
-Nombre original.
-Nombre visible.
-Tipo MIME.
-Tamaño.
-Fecha de subida.
-Colección driveFiles.chunks
 
-Guarda el contenido binario de los archivos dividido en partes.
+# ==============================
+# AUTENTICACIÓN JWT
+# ==============================
+# Clave secreta usada para firmar tokens JWT.
+# Cambiar por una clave segura.
 
-Esta colección es creada automáticamente por GridFS.
+JWT_SECRET=coloca_aqui_una_clave_secreta_segura
+JWT_EXPIRES_IN=7d
+```
 
-16. Módulo Todo List en la web
+Para configurar el proyecto, crear un archivo `.env` en la raíz:
 
-Para acceder al módulo Todo List se debe abrir:
+```bash
+cp .env.example .env
+```
 
-https://todo-list-rest-api-nzt3.onrender.com/app/
+En Windows también se puede crear manualmente el archivo `.env`.
 
-La sección izquierda corresponde al módulo Todo List.
+---
 
-Crear tarea
+## 🛡️ Seguridad del Repositorio
 
-El usuario puede escribir:
+El archivo `.gitignore` debe evitar subir información sensible:
 
-Título de la tarea.
-Descripción de la tarea.
+```gitignore
+# Dependencias
+node_modules/
+client/node_modules/
 
-Luego debe presionar:
-
-Crear tarea
-
-La tarea se guarda en MongoDB Atlas y aparece en la lista.
-
-Completar tarea
-
-Cada tarea tiene un botón:
-
-Completar
-
-Cuando se presiona, aparece una ventana emergente preguntando si se desea marcar la tarea como completada.
-
-Si se acepta, la tarea cambia su estado a:
-
-Completada
-Marcar tarea como pendiente
-
-Si una tarea ya está completada, el botón cambia a:
-
-Pendiente
-
-Al presionarlo, aparece una ventana emergente de confirmación.
-
-Si se acepta, la tarea vuelve al estado pendiente.
-
-Editar tarea
-
-El botón:
-
-Editar
-
-carga la información de la tarea en el formulario.
-
-Luego el usuario puede modificar el título o la descripción y presionar:
-
-Actualizar tarea
-Eliminar tarea
-
-El botón:
-
-Eliminar
-
-muestra una ventana emergente de confirmación.
-
-Si el usuario acepta, la tarea se elimina de MongoDB Atlas.
-
-17. Módulo Drive en la web
-
-Para acceder al módulo Drive se debe abrir:
-
-https://todo-list-rest-api-nzt3.onrender.com/app/
-
-La sección derecha corresponde al módulo Drive.
-
-18. Tabla de archivos
-
-El módulo Drive muestra una tabla con las siguientes columnas:
-
-Nombre del archivo.
-Fecha de creación.
-Tipo.
-Tamaño.
-Botones.
-
-| Nombre del archivo | Fecha de creación | Tipo            | Tamaño | Botones                       |
-| ------------------ | ----------------- | --------------- | ------ | ----------------------------- |
-| documento.pdf      | 27/05/2026        | application/pdf | 132 KB | Descargar / Editar / Eliminar |
-
-19. Funciones del módulo Drive
-Subir archivo
-
-El usuario selecciona un archivo usando el input:
-
-Elegir archivo
-
-Luego presiona:
-
-Subir archivo
-
-Antes de subirlo aparece una ventana emergente preguntando si se desea confirmar la subida.
-
-Si se acepta, el archivo se guarda en MongoDB Atlas usando GridFS.
-
-Descargar archivo
-
-Cada archivo tiene el botón:
-
-Descargar
-
-Al presionarlo, aparece una ventana emergente de confirmación.
-
-Si se acepta, el archivo se descarga desde la ruta:
-
-/api/files/:id/download
-Editar archivo
-
-Cada archivo tiene el botón:
-
-Editar
-
-Al presionarlo, aparece una ventana emergente que permite cambiar el nombre visible del archivo.
-
-Esta acción no modifica el contenido del archivo, solo su nombre visible.
-
-Eliminar archivo
-
-Cada archivo tiene el botón:
-
-Eliminar
-
-Al presionarlo, aparece una ventana emergente de confirmación.
-
-Si se acepta, el archivo se elimina de GridFS en MongoDB Atlas.
-
-20. Modo claro y modo oscuro
-
-La aplicación incluye un selector de tema en la parte superior.
-
-Tiene dos opciones:
-
-Claro
-Oscuro
-
-Al presionar Claro, la aplicación usa el modo claro.
-
-Al presionar Oscuro, la aplicación cambia al modo oscuro.
-
-Este cambio afecta:
-
-Fondo.
-Tarjetas.
-Textos.
-Tabla.
-Inputs.
-Botones.
-21. Rutas web
-
-GET /                 → Página principal Pug
-GET /todos            → Vista Pug de tareas
-GET /app/             → Aplicación React Todo List | Drive
-
-22. Rutas API del módulo Todo List
-Listar tareas
-GET /api/todos
-
-URL en Render:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos
-Obtener tarea por ID
-GET /api/todos/:id
-
-Ejemplo:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos/ID_DE_LA_TAREA
-Crear tarea
-POST /api/todos
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos
-
-Body en Postman:
-
-{
-  "title": "Tarea de prueba",
-  "description": "Creada desde Postman",
-  "completed": false
-}
-Actualizar tarea completa
-PUT /api/todos/:id
-
-Body:
-
-{
-  "title": "Tarea actualizada",
-  "description": "Descripción actualizada",
-  "completed": true
-}
-Actualizar parcialmente una tarea
-PATCH /api/todos/:id
-
-Body:
-
-{
-  "completed": true
-}
-Eliminar tarea
-DELETE /api/todos/:id
-
-No necesita body.
-
-23. Rutas API del módulo Drive
-Listar archivos
-GET /api/files
-
-URL en Render:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files
-Subir archivo
-POST /api/files/upload
-
-URL en Render:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files/upload
-
-En Postman:
-
-Body → form-data
-
-Agregar una fila:
-
-Key: file
-Type: File
-Value: seleccionar archivo
-
-Importante: la key debe llamarse exactamente:
-
-file
-Descargar archivo
-GET /api/files/:id/download
-
-Ejemplo:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files/ID_DEL_ARCHIVO/download
-
-En Postman se puede usar:
-
-Send and Download
-Editar nombre del archivo
-PATCH /api/files/:id
-
-Body:
-
-{
-  "displayName": "nuevo-nombre.pdf"
-}
-
-Esta acción actualiza el nombre visible del archivo.
-
-Eliminar archivo
-DELETE /api/files/:id
-
-No necesita body.
-
-24. Pruebas recomendadas en Postman: Todo List
-Prueba 1: listar tareas
-
-Método:
-
-GET
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos
-Prueba 2: crear tarea
-
-Método:
-
-POST
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos
-
-Body:
-
-{
-  "title": "Tarea creada desde Postman",
-  "description": "Prueba de creación usando la API",
-  "completed": false
-}
-
-Guardar el valor de _id para las siguientes pruebas.
-
-Prueba 3: obtener tarea por ID
-
-Método:
-
-GET
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos/ID_DE_LA_TAREA
-Prueba 4: actualizar tarea completa
-
-Método:
-
-PUT
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos/ID_DE_LA_TAREA
-
-Body:
-
-{
-  "title": "Tarea editada desde Postman",
-  "description": "La tarea fue actualizada completamente",
-  "completed": true
-}
-Prueba 5: actualizar estado
-
-Método:
-
-PATCH
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos/ID_DE_LA_TAREA
-
-Body:
-
-{
-  "completed": false
-}
-Prueba 6: eliminar tarea
-
-Método:
-
-DELETE
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/todos/ID_DE_LA_TAREA
-25. Pruebas recomendadas en Postman: Drive
-Prueba 1: listar archivos
-
-Método:
-
-GET
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files
-Prueba 2: subir archivo
-
-Método:
-
-POST
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files/upload
-
-En Postman:
-
-Body → form-data
-
-Agregar:
-
-Key: file
-Type: File
-Value: seleccionar archivo
-
-Guardar el _id del archivo para las siguientes pruebas.
-
-Prueba 3: descargar archivo
-
-Método:
-
-GET
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files/ID_DEL_ARCHIVO/download
-
-En Postman se recomienda usar:
-
-Send and Download
-Prueba 4: editar nombre del archivo
-
-Método:
-
-PATCH
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files/ID_DEL_ARCHIVO
-
-Body:
-
-{
-  "displayName": "archivo-renombrado.pdf"
-}
-Prueba 5: eliminar archivo
-
-Método:
-
-DELETE
-
-URL:
-
-https://todo-list-rest-api-nzt3.onrender.com/api/files/ID_DEL_ARCHIVO
-26. Cómo probar desde la aplicación web
-
-Abrir:
-
-https://todo-list-rest-api-nzt3.onrender.com/app/
-Probar Todo List
-Escribir un título.
-Escribir una descripción.
-Presionar Crear tarea.
-Verificar que la tarea aparezca en la lista.
-Presionar Completar.
-Confirmar la ventana emergente.
-Presionar Editar.
-Cambiar los datos.
-Presionar Actualizar tarea.
-Presionar Eliminar.
-Confirmar la eliminación.
-Probar Drive
-Presionar Elegir archivo.
-Seleccionar un archivo desde la computadora.
-Presionar Subir archivo.
-Confirmar la ventana emergente.
-Verificar que el archivo aparezca en la tabla.
-Presionar Descargar.
-Confirmar la descarga.
-Presionar Editar.
-Cambiar el nombre visible.
-Confirmar la edición.
-Presionar Eliminar.
-Confirmar la eliminación.
-27. Headers y caché
-
-El proyecto incluye ajustes básicos de headers.
-
-En operaciones que modifican datos, como:
-
-POST
-PUT
-PATCH
-DELETE
-
-se usa:
-
-Cache-Control: no-store
-
-Esto indica que esas respuestas no deben almacenarse en caché, porque modifican información.
-
-También se desactivó:
-
-X-Powered-By
-
-para no exponer innecesariamente que el servidor usa Express.
-
-En respuestas de lectura se pueden manejar headers como:
-
-Cache-Control
-ETag
-Last-Modified
-
-para optimizar respuestas y reducir tráfico cuando los datos no han cambiado.
-
-28. Seguridad básica
-
-El archivo .env no se sube a GitHub.
-
-En .gitignore se excluyen:
-
+# Variables de entorno
 .env
+.env.local
+.env.*.local
+
+# Build de React
+client/dist/
+
+# Certificados HTTPS locales
+certs/
+*.pem
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+```
+
+No se debe subir al repositorio:
+
+```txt
+.env
+contraseñas reales
+credenciales de MongoDB Atlas
+JWT_SECRET real
+archivos .pem
 node_modules
+```
 
-La conexión a MongoDB Atlas se configura mediante la variable de entorno:
+---
 
-MONGO_URI
+## 🚀 Instalación Local
 
-En local se usa .env.
+### 1. Clonar el repositorio
 
-En Render se configura desde:
+```bash
+git clone https://github.com/Mael0502/todo-list-rest-api.git
+cd todo-list-rest-api
+```
 
-Environment Variables
-29. Despliegue en Render
+---
 
-Render ejecuta el siguiente comando para instalar dependencias y compilar React:
+### 2. Instalar dependencias del backend
 
-npm install && npm run build
+```bash
+npm install
+```
 
-Luego ejecuta:
+---
 
-npm start
+### 3. Instalar dependencias del frontend
 
-para iniciar el servidor Express.
+```bash
+npm install --prefix client
+```
 
-El servidor Express sirve:
+---
 
-API REST.
-Vistas Pug.
-Frontend React compilado.
+### 4. Configurar variables de entorno
 
-React se sirve desde:
+Crear el archivo `.env` en la raíz del proyecto usando `.env.example` como guía:
 
-/app/
-30. Comandos importantes
-Ejecutar en desarrollo
-npm run dev
-Compilar React
+```env
+MONGO_URI=tu_cadena_real_de_mongodb_atlas
+PORT=3000
+JWT_SECRET=tu_clave_secreta
+JWT_EXPIRES_IN=7d
+```
+
+---
+
+### 5. Compilar React
+
+```bash
 npm run build
-Ejecutar en producción
+```
+
+Este comando instala dependencias del cliente y genera el build de React en:
+
+```txt
+client/dist
+```
+
+---
+
+### 6. Cargar datos iniciales
+
+El proyecto incluye un script para cargar datos de prueba por lotes.
+
+Ejecutar:
+
+```bash
+npm run seed
+```
+
+Este comando crea:
+
+```txt
+1 usuario demo
+10 tareas demo asociadas al usuario
+```
+
+Credenciales de prueba:
+
+```txt
+Correo: demo@test.com
+Contraseña: 123456
+```
+
+---
+
+### 7. Iniciar el servidor
+
+```bash
+npm run dev
+```
+
+El servidor se ejecutará en:
+
+```txt
+http://localhost:3000
+```
+
+La aplicación React se sirve desde:
+
+```txt
+http://localhost:3000/app/
+```
+
+---
+
+## ⚡ Inicio Rápido
+
+```bash
+git clone https://github.com/Mael0502/todo-list-rest-api.git
+cd todo-list-rest-api
+npm install
+npm install --prefix client
+cp .env.example .env
+npm run build
+npm run seed
+npm run dev
+```
+
+Luego acceder a:
+
+```txt
+http://localhost:3000/app/
+```
+
+Iniciar sesión con:
+
+```txt
+Correo: demo@test.com
+Contraseña: 123456
+```
+
+---
+
+## 🧪 Comandos Disponibles
+
+```bash
+npm run dev
+```
+
+Inicia el servidor con nodemon en modo desarrollo.
+
+```bash
 npm start
-Subir cambios a GitHub
-git add .
-git commit -m "mensaje del cambio"
-git push
-31. Resumen de rutas principales
-Web
-GET /                 → Página principal Pug
-GET /todos            → Vista Pug de tareas
-GET /app/             → Aplicación React Todo List | Drive
-API Todo List
+```
+
+Inicia el servidor en modo normal.
+
+```bash
+npm run build
+```
+
+Instala dependencias del frontend y genera el build de React.
+
+```bash
+npm run seed
+```
+
+Carga usuario y tareas de prueba en MongoDB Atlas.
+
+---
+
+## 🌐 Rutas Principales
+
+### Frontend
+
+```txt
+GET /app/
+```
+
+Abre la aplicación React.
+
+---
+
+### Autenticación
+
+```txt
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+```
+
+---
+
+### Tareas
+
+```txt
 GET    /api/todos
 GET    /api/todos/:id
 POST   /api/todos
 PUT    /api/todos/:id
 PATCH  /api/todos/:id
 DELETE /api/todos/:id
-API Drive
+```
+
+---
+
+### Drive / Archivos
+
+```txt
 GET    /api/files
 POST   /api/files/upload
 GET    /api/files/:id/download
 PATCH  /api/files/:id
 DELETE /api/files/:id
-32. Conclusión
+```
 
-El proyecto integra una aplicación web con dos módulos principales: Todo List y Drive.
+---
 
-La aplicación permite:
+## 🔑 Autenticación
 
-Gestionar tareas.
-Gestionar archivos.
-Consumir una API REST.
-Guardar datos en MongoDB Atlas.
-Guardar archivos con GridFS.
-Probar endpoints con Postman.
-Acceder desde la web mediante Render.
-Usar una interfaz React con modo claro y oscuro.
+El proyecto utiliza:
 
-El proyecto puede ser evaluado desde:
+```txt
+JWT + bcrypt + localStorage
+```
 
-La interfaz web en Render.
-Las rutas API en Postman.
-La base de datos MongoDB Atlas.
-El repositorio en GitHub.
-## Autenticación
+### Registro
 
-El proyecto utiliza autenticación con JWT y bcrypt.
+Cuando un usuario se registra, el backend recibe:
 
-- `bcryptjs` se usa para encriptar contraseñas.
-- `jsonwebtoken` se usa para generar tokens JWT.
-- React guarda el token en `localStorage`.
-- Las rutas `/api/todos` y `/api/files` están protegidas.
-- Cada usuario solo puede ver sus propias tareas y archivos.
+```txt
+name
+email
+password
+```
 
-### Rutas de autenticación
+La contraseña se encripta con `bcryptjs` antes de guardarse en MongoDB.
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| POST | `/api/auth/register` | Registrar usuario |
-| POST | `/api/auth/login` | Iniciar sesión |
-| GET | `/api/auth/me` | Obtener usuario autenticado |
+---
 
-Para usar rutas protegidas en Postman se debe enviar:
+### Login
+
+Cuando el usuario inicia sesión, el backend valida el correo y contraseña.
+Si son correctos, genera un token JWT.
+
+El frontend guarda el token en:
+
+```txt
+localStorage
+```
+
+Luego, cada petición protegida envía el token en el header:
 
 ```txt
 Authorization: Bearer TOKEN
+```
+
+---
+
+### Middleware de protección
+
+Las rutas de tareas y archivos están protegidas con JWT.
+El middleware verifica el token, obtiene el usuario autenticado y lo asigna a:
+
+```js
+req.user
+```
+
+Gracias a esto, el backend sabe qué usuario está realizando cada acción.
+
+---
+
+## 👥 Separación de Datos por Usuario
+
+Cada tarea y archivo pertenece a un usuario.
+
+En tareas se guarda el campo:
+
+```txt
+user
+```
+
+En archivos se guarda en metadatos de GridFS:
+
+```txt
+metadata.userId
+```
+
+Esto permite que:
+
+```txt
+Usuario A solo vea sus tareas y archivos.
+Usuario B solo vea sus tareas y archivos.
+Un usuario no pueda modificar datos de otro usuario.
+```
+
+---
+
+## 📄 Paginación, Búsqueda, Filtros y Ordenamiento
+
+El proyecto implementa paginación para evitar que las listas crezcan indefinidamente.
+
+### Tareas
+
+Ejemplo:
+
+```txt
+GET /api/todos?page=1&limit=5
+```
+
+Con búsqueda:
+
+```txt
+GET /api/todos?page=1&limit=5&search=defensa
+```
+
+Con filtro por estado:
+
+```txt
+GET /api/todos?page=1&limit=5&status=pending
+GET /api/todos?page=1&limit=5&status=completed
+```
+
+Con ordenamiento:
+
+```txt
+GET /api/todos?page=1&limit=5&sort=newest
+GET /api/todos?page=1&limit=5&sort=oldest
+GET /api/todos?page=1&limit=5&sort=title_asc
+GET /api/todos?page=1&limit=5&sort=title_desc
+```
+
+---
+
+### Archivos
+
+Ejemplo:
+
+```txt
+GET /api/files?page=1&limit=5
+```
+
+Con búsqueda:
+
+```txt
+GET /api/files?page=1&limit=5&search=informe
+```
+
+Con filtro por tipo:
+
+```txt
+GET /api/files?page=1&limit=5&type=image
+GET /api/files?page=1&limit=5&type=pdf
+GET /api/files?page=1&limit=5&type=text
+GET /api/files?page=1&limit=5&type=other
+```
+
+Con ordenamiento:
+
+```txt
+GET /api/files?page=1&limit=5&sort=newest
+GET /api/files?page=1&limit=5&sort=oldest
+GET /api/files?page=1&limit=5&sort=size_desc
+GET /api/files?page=1&limit=5&sort=size_asc
+GET /api/files?page=1&limit=5&sort=name_asc
+GET /api/files?page=1&limit=5&sort=name_desc
+```
+
+---
+
+## 🗂️ Funcionamiento del Drive
+
+El módulo Drive utiliza:
+
+```txt
+Multer + GridFS + MongoDB Atlas
+```
+
+### Proceso de subida
+
+```txt
+Usuario selecciona archivo
+↓
+React envía el archivo con FormData
+↓
+Express recibe el archivo con Multer
+↓
+GridFS guarda el archivo en MongoDB Atlas
+↓
+Se guardan metadatos como usuario, nombre, tipo y tamaño
+```
+
+GridFS crea internamente colecciones como:
+
+```txt
+driveFiles.files
+driveFiles.chunks
+```
+
+La colección `.files` guarda metadatos.
+La colección `.chunks` guarda el contenido binario del archivo dividido en partes.
+
+---
+
+## 🧪 Pruebas en Postman
+
+### 1. Registrar usuario
+
+```txt
+POST http://localhost:3000/api/auth/register
+```
+
+Body → raw → JSON:
+
+```json
+{
+  "name": "Usuario Demo",
+  "email": "demo@test.com",
+  "password": "123456"
+}
+```
+
+---
+
+### 2. Iniciar sesión
+
+```txt
+POST http://localhost:3000/api/auth/login
+```
+
+Body → raw → JSON:
+
+```json
+{
+  "email": "demo@test.com",
+  "password": "123456"
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "success": true,
+  "message": "Inicio de sesión correcto",
+  "token": "TOKEN_JWT",
+  "data": {
+    "_id": "ID_USUARIO",
+    "name": "Usuario Demo",
+    "email": "demo@test.com"
+  }
+}
+```
+
+Copiar el valor del token.
+
+---
+
+### 3. Usar rutas protegidas
+
+En Postman:
+
+```txt
+Authorization → Type → Bearer Token
+```
+
+Pegar solamente el token, sin escribir `Bearer`.
+
+---
+
+### 4. Crear tarea
+
+```txt
+POST http://localhost:3000/api/todos
+```
+
+Body → raw → JSON:
+
+```json
+{
+  "title": "Tarea creada desde Postman",
+  "description": "Prueba de creación usando JWT",
+  "completed": false
+}
+```
+
+---
+
+### 5. Listar tareas
+
+```txt
+GET http://localhost:3000/api/todos?page=1&limit=5
+```
+
+---
+
+### 6. Probar búsqueda de tareas
+
+```txt
+GET http://localhost:3000/api/todos?page=1&limit=5&search=jwt
+```
+
+---
+
+### 7. Probar filtros de tareas
+
+```txt
+GET http://localhost:3000/api/todos?page=1&limit=5&status=pending
+```
+
+```txt
+GET http://localhost:3000/api/todos?page=1&limit=5&status=completed
+```
+
+---
+
+### 8. Subir archivo
+
+```txt
+POST http://localhost:3000/api/files/upload
+```
+
+En Postman:
+
+```txt
+Authorization → Bearer Token
+Body → form-data
+```
+
+Agregar:
+
+```txt
+Key: file
+Type: File
+Value: seleccionar archivo
+```
+
+---
+
+### 9. Listar archivos
+
+```txt
+GET http://localhost:3000/api/files?page=1&limit=5
+```
+
+---
+
+### 10. Buscar archivos
+
+```txt
+GET http://localhost:3000/api/files?page=1&limit=5&search=informe
+```
+
+---
+
+### 11. Filtrar archivos por tipo
+
+```txt
+GET http://localhost:3000/api/files?page=1&limit=5&type=pdf
+```
+
+---
+
+## 🚀 Despliegue en Render
+
+El proyecto puede desplegarse en Render como un Web Service.
+
+### Configuración recomendada
+
+```txt
+Build Command:
+npm install && npm run build
+
+Start Command:
+npm start
+```
+
+### Variables de entorno en Render
+
+Configurar en:
+
+```txt
+Render → Environment
+```
+
+Variables necesarias:
+
+```txt
+MONGO_URI
+PORT
+JWT_SECRET
+JWT_EXPIRES_IN
+```
+
+Ejemplo:
+
+```txt
+PORT=3000
+JWT_EXPIRES_IN=7d
+```
+
+No colocar credenciales directamente en el código.
+
+---
+
+### URL de producción
+
+Si el servicio está desplegado en Render, la aplicación se accede desde:
+
+```txt
+https://todo-list-rest-api-nzt3.onrender.com/app/
+```
+
+Las rutas API quedan disponibles bajo el mismo dominio:
+
+```txt
+https://todo-list-rest-api-nzt3.onrender.com/api/auth/login
+https://todo-list-rest-api-nzt3.onrender.com/api/todos
+https://todo-list-rest-api-nzt3.onrender.com/api/files
+```
+
+---
+
+## 🔒 HTTPS
+
+En producción, Render proporciona HTTPS automáticamente mediante una URL segura:
+
+```txt
+https://...
+```
+
+Esto permite que credenciales, tokens JWT, tareas y archivos viajen cifrados entre navegador y servidor.
+
+En entorno local, el proyecto se ejecuta normalmente en:
+
+```txt
+http://localhost:3000
+```
+
+Si se requiere HTTPS local con certificados `.pem`, se debe configurar el servidor con el módulo nativo `https` de Node.js y certificados locales.
+Los certificados no deben subirse al repositorio y deben mantenerse ignorados mediante `.gitignore`.
+
+---
+
+## 🧰 Solución de Problemas
+
+### Error de conexión con MongoDB Atlas
+
+Revisar:
+
+```txt
+MONGO_URI
+usuario y contraseña de MongoDB Atlas
+Network Access en MongoDB Atlas
+conexión a internet
+```
+
+En MongoDB Atlas, verificar:
+
+```txt
+Database Access
+Network Access
+```
+
+Para pruebas académicas puede habilitarse temporalmente:
+
+```txt
+0.0.0.0/0
+```
+
+---
+
+### Error: Token inválido o expirado
+
+Volver a iniciar sesión y copiar un token nuevo.
+
+En Postman, usar:
+
+```txt
+Authorization → Bearer Token
+```
+
+Pegar solo el token, sin comillas y sin escribir `Bearer`.
+
+---
+
+### Error al subir archivo
+
+Verificar:
+
+```txt
+Body → form-data
+Key: file
+Type: File
+```
+
+No usar `raw JSON` para subir archivos.
+
+---
+
+### React no carga en /app
+
+Ejecutar:
+
+```bash
+npm run build
+```
+
+Luego iniciar:
+
+```bash
+npm run dev
+```
+
+Verificar que exista:
+
+```txt
+client/dist/index.html
+```
+
+---
+
+## 🧪 Datos de Prueba
+
+El proyecto incluye datos de prueba mediante:
+
+```bash
+npm run seed
+```
+
+Credenciales generadas:
+
+```txt
+Correo: demo@test.com
+Contraseña: 123456
+```
+
+Con este usuario se pueden probar:
+
+```txt
+login
+tareas
+búsqueda
+filtros
+ordenamiento
+paginación
+Drive
+```
+
+---
+
+## 📌 Funcionalidades Implementadas
+
+```txt
+[x] Registro de usuario
+[x] Inicio de sesión
+[x] Autenticación JWT
+[x] Encriptación de contraseñas con bcrypt
+[x] Protección de rutas
+[x] Separación de datos por usuario
+[x] CRUD de tareas
+[x] CRUD de archivos
+[x] Almacenamiento con GridFS
+[x] Paginación de tareas
+[x] Paginación de archivos
+[x] Buscador de tareas
+[x] Buscador de archivos
+[x] Filtros de tareas
+[x] Filtros de archivos
+[x] Ordenamiento de tareas
+[x] Ordenamiento de archivos
+[x] Modales personalizados
+[x] Ventana de progreso al subir archivos
+[x] Modo claro y oscuro
+[x] Footer con repositorio GitHub
+[x] Despliegue en Render
+[x] Script de carga de datos iniciales
+```
+
+---
+
+## 📌 Mejoras Futuras
+
+```txt
+[ ] Recuperación de contraseña
+[ ] Inicio de sesión con Google
+[ ] Previsualización de imágenes y PDF
+[ ] Carpetas en Drive
+[ ] Favoritos
+[ ] Papelera de reciclaje
+[ ] Roles avanzados de usuario
+[ ] Documentación Swagger
+[ ] Pruebas automatizadas
+```
+
+---
+
+## 🤝 Repositorio
+
+Código fuente disponible en:
+
+```txt
+https://github.com/Mael0502/todo-list-rest-api.git
+```
+
+---
+
+## 📄 Licencia
+
+Proyecto académico desarrollado para fines educativos.
