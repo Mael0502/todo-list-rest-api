@@ -880,6 +880,174 @@ Los certificados no deben subirse al repositorio y deben mantenerse ignorados me
 
 ---
 
+## 🔒 Configuración HTTPS Local con Certificados `.pem`
+
+El proyecto puede ejecutarse localmente usando **HTTP** o **HTTPS**.
+Por defecto, el servidor funciona con HTTP:
+
+```txt
+http://localhost:3000/app/
+```
+
+También se agregó soporte para HTTPS local usando el módulo nativo `https` de Node.js y certificados `.pem`.
+
+---
+
+### 1. Variables de entorno para HTTPS
+
+En el archivo `.env.example` se incluyen estas variables:
+
+```env
+HTTPS_ENABLED=false
+SSL_KEY_PATH=certs/key.pem
+SSL_CERT_PATH=certs/cert.pem
+```
+
+Para ejecutar el proyecto normalmente en HTTP local, mantener:
+
+```env
+HTTPS_ENABLED=false
+```
+
+Para ejecutar el proyecto con HTTPS local, cambiar a:
+
+```env
+HTTPS_ENABLED=true
+```
+
+---
+
+### 2. Crear carpeta para certificados
+
+Desde la raíz del proyecto, crear la carpeta:
+
+```bash
+mkdir -p certs
+```
+
+En PowerShell también se puede usar:
+
+```powershell
+mkdir certs
+```
+
+---
+
+### 3. Generar certificados `.pem`
+
+Desde la raíz del proyecto, ejecutar:
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 365 \
+  -keyout certs/key.pem \
+  -out certs/cert.pem
+```
+
+Durante la generación del certificado se solicitarán algunos datos.
+Para entorno local se puede colocar, por ejemplo:
+
+```txt
+Country Name: BO
+State: Cochabamba
+Locality: Cochabamba
+Organization: UMSS
+Organizational Unit: Proyecto PW2
+Common Name: localhost
+Email Address: correo_de_prueba
+```
+
+Los archivos generados serán:
+
+```txt
+certs/key.pem
+certs/cert.pem
+```
+
+---
+
+### 4. Ejecutar el servidor en HTTPS local
+
+En el archivo `.env`, configurar:
+
+```env
+HTTPS_ENABLED=true
+SSL_KEY_PATH=certs/key.pem
+SSL_CERT_PATH=certs/cert.pem
+```
+
+Luego iniciar el servidor:
+
+```bash
+npm run dev
+```
+
+La aplicación estará disponible en:
+
+```txt
+https://localhost:3000/app/
+```
+
+El navegador puede mostrar una advertencia de seguridad porque el certificado es autofirmado.
+Esto es normal en entorno local. Se debe ingresar mediante la opción avanzada del navegador y continuar.
+
+---
+
+### 5. Volver a HTTP local
+
+Para volver a ejecutar el proyecto en HTTP local, cambiar en `.env`:
+
+```env
+HTTPS_ENABLED=false
+```
+
+Luego reiniciar el servidor:
+
+```bash
+npm run dev
+```
+
+La aplicación volverá a estar disponible en:
+
+```txt
+http://localhost:3000/app/
+```
+
+---
+
+### 6. Consideración para Render
+
+En Render se debe mantener:
+
+```env
+HTTPS_ENABLED=false
+```
+
+Render ya proporciona HTTPS automáticamente mediante su propia infraestructura.
+Por eso no se deben subir certificados `.pem` al repositorio ni configurar `HTTPS_ENABLED=true` en Render.
+
+---
+
+### 7. Seguridad de certificados
+
+Los certificados locales no deben subirse al repositorio.
+Por eso el archivo `.gitignore` incluye:
+
+```gitignore
+certs/
+*.pem
+```
+
+Esto evita subir:
+
+```txt
+certs/key.pem
+certs/cert.pem
+```
+
+De esta forma, el proyecto puede usar HTTPS local para pruebas académicas, pero sin exponer credenciales ni certificados privados en GitHub.
+
+---
+
 ## 🧰 Solución de Problemas
 
 ### Error de conexión con MongoDB Atlas
