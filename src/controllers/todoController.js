@@ -2,11 +2,59 @@ const crypto = require('crypto');
 const Todo = require('../models/Todo');
 
 const getTodoFilter = (req) => {
+  const filter = {};
+
   if (req.user) {
-    return { user: req.user._id };
+    filter.user = req.user._id;
   }
 
-  return {};
+  const search = req.query.search?.trim();
+  const status = req.query.status;
+
+  if (search) {
+    filter.$or = [
+      {
+        title: {
+          $regex: search,
+          $options: 'i'
+        }
+      },
+      {
+        description: {
+          $regex: search,
+          $options: 'i'
+        }
+      }
+    ];
+  }
+
+  if (status === 'completed') {
+    filter.completed = true;
+  }
+
+  if (status === 'pending') {
+    filter.completed = false;
+  }
+
+  return filter;
+};
+
+const getTodoSort = (req) => {
+  const sort = req.query.sort || 'newest';
+
+  if (sort === 'oldest') {
+    return { createdAt: 1 };
+  }
+
+  if (sort === 'title_asc') {
+    return { title: 1 };
+  }
+
+  if (sort === 'title_desc') {
+    return { title: -1 };
+  }
+
+  return { createdAt: -1 };
 };
 
 const formatTodoResponse = (todo, baseUrl) => ({
@@ -23,16 +71,18 @@ const formatTodoResponse = (todo, baseUrl) => ({
 const getAllTodos = async (req, res) => {
   try {
     const filter = getTodoFilter(req);
+    const sortOption = getTodoSort(req);
 
-     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-     const limit = Math.max(parseInt(req.query.limit, 10) || 5, 1);
-     const skip = (page - 1) * limit;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 5, 1);
+    const skip = (page - 1) * limit;
 
-     const total = await Todo.countDocuments(filter);
+    const total = await Todo.countDocuments(filter);
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
 
-     const todos = await Todo.find(filter)
+    const todos = await Todo.find(filter)
       .select('-__v')
-      .sort({ createdAt: -1 })
+      .sort(sortOption)
       .skip(skip)
       .limit(limit)
       .lean();
@@ -53,6 +103,12 @@ const getAllTodos = async (req, res) => {
     const etagBase = JSON.stringify({
       user: req.user?._id?.toString() || 'public',
       count: todos.length,
+      total,
+      page,
+      limit,
+      search: req.query.search || '',
+      status: req.query.status || 'all',
+      sort: req.query.sort || 'newest',
       lastUpdated: lastUpdated.toISOString()
     });
 
@@ -73,28 +129,33 @@ const getAllTodos = async (req, res) => {
 
     const data = todos.map((todo) => formatTodoResponse(todo, baseUrl));
 
-   res.status(200).json({
-  success: true,
-  meta: {
-    count: data.length,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-    hasNextPage: page < Math.ceil(total / limit),
-    hasPrevPage: page > 1,
-    lastUpdated: lastUpdated.toISOString(),
-    generatedAt: new Date().toISOString(),
-    links: {
-      self: `${baseUrl}${req.originalUrl}`
-    },
-    cache: {
-      etag,
-      lastModified: lastUpdated.toUTCString()
-    }
-  },
-  data
-});
+    res.status(200).json({
+      success: true,
+      meta: {
+        count: data.length,
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+        filters: {
+          search: req.query.search || '',
+          status: req.query.status || 'all',
+          sort: req.query.sort || 'newest'
+        },
+        lastUpdated: lastUpdated.toISOString(),
+        generatedAt: new Date().toISOString(),
+        links: {
+          self: `${baseUrl}${req.originalUrl}`
+        },
+        cache: {
+          etag,
+          lastModified: lastUpdated.toUTCString()
+        }
+      },
+      data
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -211,7 +272,7 @@ const updateTodo = async (req, res) => {
   try {
     const filter = {
       _id: req.params.id,
-      ...getTodoFilter(req)
+      user: req.user?._id
     };
 
     const todo = await Todo.findOneAndUpdate(
@@ -264,7 +325,7 @@ const deleteTodo = async (req, res) => {
   try {
     const filter = {
       _id: req.params.id,
-      ...getTodoFilter(req)
+      user: req.user?._id
     };
 
     const todo = await Todo.findOneAndDelete(filter);

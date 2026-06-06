@@ -39,6 +39,128 @@ const getFileFilter = (req, fileId = null) => {
   return filter;
 };
 
+const buildFileListFilter = (req) => {
+  const filter = getFileFilter(req);
+
+  const search = req.query.search?.trim();
+  const type = req.query.type || 'all';
+
+  if (search) {
+    filter.$or = [
+      {
+        filename: {
+          $regex: search,
+          $options: 'i'
+        }
+      },
+      {
+        'metadata.originalName': {
+          $regex: search,
+          $options: 'i'
+        }
+      },
+      {
+        'metadata.displayName': {
+          $regex: search,
+          $options: 'i'
+        }
+      }
+    ];
+  }
+
+  if (type === 'image') {
+    filter.$and = [
+      ...(filter.$and || []),
+      {
+        $or: [
+          { contentType: { $regex: '^image/', $options: 'i' } },
+          { 'metadata.mimeType': { $regex: '^image/', $options: 'i' } }
+        ]
+      }
+    ];
+  }
+
+  if (type === 'pdf') {
+    filter.$and = [
+      ...(filter.$and || []),
+      {
+        $or: [
+          { contentType: 'application/pdf' },
+          { 'metadata.mimeType': 'application/pdf' }
+        ]
+      }
+    ];
+  }
+
+  if (type === 'text') {
+    filter.$and = [
+      ...(filter.$and || []),
+      {
+        $or: [
+          { contentType: { $regex: '^text/', $options: 'i' } },
+          { 'metadata.mimeType': { $regex: '^text/', $options: 'i' } }
+        ]
+      }
+    ];
+  }
+
+  if (type === 'other') {
+    filter.$and = [
+      ...(filter.$and || []),
+      {
+        $and: [
+          {
+            $or: [
+              { contentType: { $exists: false } },
+              { contentType: { $not: /^image\//i } }
+            ]
+          },
+          {
+            $or: [
+              { contentType: { $exists: false } },
+              { contentType: { $ne: 'application/pdf' } }
+            ]
+          },
+          {
+            $or: [
+              { contentType: { $exists: false } },
+              { contentType: { $not: /^text\//i } }
+            ]
+          }
+        ]
+      }
+    ];
+  }
+
+  return filter;
+};
+
+const getFileSort = (req) => {
+  const sort = req.query.sort || 'newest';
+
+  if (sort === 'oldest') {
+    return { uploadDate: 1 };
+  }
+
+  if (sort === 'size_desc') {
+    return { length: -1 };
+  }
+
+  if (sort === 'size_asc') {
+    return { length: 1 };
+  }
+
+  if (sort === 'name_asc') {
+    return { 'metadata.displayName': 1 };
+  }
+
+  if (sort === 'name_desc') {
+    return { 'metadata.displayName': -1 };
+  }
+
+  return { uploadDate: -1 };
+};
+
 const formatFileSize = (bytes) => {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -131,18 +253,21 @@ const getAllFiles = async (req, res) => {
     const limit = Math.max(parseInt(req.query.limit, 10) || 5, 1);
     const skip = (page - 1) * limit;
 
-    const filter = getFileFilter(req);
+    const filter = buildFileListFilter(req);
+    const sortOption = getFileSort(req);
 
     const total = await mongoose.connection.db
-    .collection('driveFiles.files')
-    .countDocuments(filter);
+      .collection('driveFiles.files')
+      .countDocuments(filter);
+
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
 
     const files = await bucket
-    .find(filter)
-    .sort({ uploadDate: -1 })
-    .skip(skip)
-    .limit(limit)
-    .toArray();
+      .find(filter)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
 
     const data = files.map((file) => ({
       _id: file._id.toString(),
@@ -160,19 +285,23 @@ const getAllFiles = async (req, res) => {
     });
 
     res.status(200).json({
-    success: true,
-    count: data.length,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: page < Math.ceil(total / limit),
-      hasPrevPage: page > 1
+      success: true,
+      count: data.length,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+        filters: {
+          search: req.query.search || '',
+          type: req.query.type || 'all',
+          sort: req.query.sort || 'newest'
+        }
       },
-    data
+      data
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
